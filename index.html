@@ -1,0 +1,1614 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Caderno de fichamentos</title>
+<style>
+:root{
+  --paper:#F0EFEA; --surface:#FBFAF7; --surface-2:#E8E7E0; --ink:#1A2326;
+  --ink-soft:#5C6A6D; --ink-faint:#8A9496; --rule:#D3D2CA; --rule-hard:#B8B7AE;
+  --accent:#275E63; --accent-bg:#DDE6E5; --pen:#9A3B2E; --pen-bg:#EFE0DC;
+  --agree:#3E7A5E; --agree-bg:#DFE9E2; --warn:#8A6A1E; --warn-bg:#F0E7D2;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --sans:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;
+  --mono:"Cascadia Mono",Consolas,"SF Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#14191B; --surface:#1B2225; --surface-2:#232B2E; --ink:#E4E4DE;
+  --ink-soft:#9AA6A8; --ink-faint:#6B777A; --rule:#2E393C; --rule-hard:#3E4B4E;
+  --accent:#77B7B7; --accent-bg:#1E3134; --pen:#DB8570; --pen-bg:#33231F;
+  --agree:#78B294; --agree-bg:#1D2C25; --warn:#D6B15E; --warn-bg:#2B2415;
+}}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);font-family:var(--serif);font-size:16px;line-height:1.6}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.mono{font-family:var(--mono)}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint)}
+
+/* ---- topbar ---- */
+header.top{position:sticky;top:0;z-index:40;background:var(--surface);border-bottom:1px solid var(--rule-hard)}
+.top-in{max-width:1400px;margin:0 auto;padding:12px 20px;display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.brand{display:flex;flex-direction:column;gap:2px;margin-right:auto}
+.brand b{font-size:16px;font-weight:600;letter-spacing:-.01em}
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button.btn{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;
+  background:transparent;color:var(--accent);border:1px solid var(--accent);padding:8px 14px;cursor:pointer;border-radius:2px}
+button.btn:hover{background:var(--accent-bg)}
+button.btn.solid{background:var(--accent);color:var(--surface)}
+button.btn.solid:hover{opacity:.88}
+button.btn.quiet{border-color:var(--rule-hard);color:var(--ink-soft)}
+button.btn.quiet:hover{background:var(--surface-2)}
+button.btn.danger{border-color:var(--pen);color:var(--pen)}
+button.btn.danger:hover{background:var(--pen-bg)}
+button.btn:disabled{opacity:.4;cursor:not-allowed}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ink-faint);display:inline-block;flex-shrink:0}
+.dot.ok{background:var(--agree)} .dot.dirty{background:var(--warn)} .dot.err{background:var(--pen)}
+.syncmsg{font-family:var(--mono);font-size:11px;color:var(--ink-soft);display:flex;align-items:center;gap:7px}
+
+/* ---- tabs ---- */
+nav.tabs{max-width:1400px;margin:0 auto;padding:0 20px;display:flex;gap:2px;border-bottom:1px solid var(--rule)}
+nav.tabs button{background:none;border:none;border-bottom:2px solid transparent;padding:12px 16px;cursor:pointer;
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint)}
+nav.tabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+nav.tabs button:hover{color:var(--ink)}
+
+/* ---- filtros ---- */
+.filters{background:var(--surface-2);border-bottom:1px solid var(--rule-hard)}
+.filters-in{max-width:1400px;margin:0 auto;padding:14px 20px;display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.fgroup{display:flex;flex-direction:column;gap:6px}
+.fgroup>span{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-faint)}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;padding:4px 9px;border:1px solid var(--rule-hard);
+  color:var(--ink-soft);background:var(--surface);cursor:pointer;border-radius:2px;white-space:nowrap}
+.chip[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:var(--accent-bg);font-weight:600}
+input.search{background:var(--surface);border:1px solid var(--rule-hard);padding:7px 11px;min-width:230px;border-radius:2px;font-size:14px}
+.fcount{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--ink-soft);align-self:center}
+
+main{max-width:1400px;margin:0 auto;padding:26px 20px 100px}
+.pane[hidden]{display:none}
+h2.sec{font-size:20px;font-weight:600;margin:34px 0 6px;letter-spacing:-.01em}
+h2.sec:first-child{margin-top:0}
+p.hint{color:var(--ink-soft);font-size:14.5px;max-width:76ch;margin-bottom:16px}
+
+/* ---- matriz ---- */
+.scroller{overflow-x:auto;border:1px solid var(--rule-hard);background:var(--surface)}
+table.matrix{border-collapse:collapse;width:100%;font-size:14px}
+table.matrix th,table.matrix td{text-align:left;vertical-align:top;padding:11px 15px;border-bottom:1px solid var(--rule)}
+table.matrix thead th{position:sticky;top:0;z-index:3;background:var(--surface-2);border-bottom:2px solid var(--ink);
+  font-family:var(--sans);font-size:12.5px;font-weight:600;line-height:1.35;min-width:210px}
+table.matrix thead th .who{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-faint);margin-bottom:4px}
+table.matrix th.axis{position:sticky;left:0;z-index:2;background:var(--surface-2);width:160px;min-width:160px;
+  border-right:1px solid var(--rule-hard);font-family:var(--mono);font-size:10px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink-soft);font-weight:400;line-height:1.5}
+table.matrix thead th:first-child{z-index:4}
+table.matrix tbody tr:hover td{background:var(--accent-bg)}
+table.matrix td.vazio{color:var(--ink-faint)}
+
+/* ---- fichas ---- */
+.ficha{border:1px solid var(--rule-hard);background:var(--surface);margin-bottom:26px;scroll-margin-top:130px}
+.ficha>header{padding:20px 24px 18px;border-bottom:2px solid var(--ink);background:var(--surface-2);
+  display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}
+.ficha>header .h{flex:1 1 420px;min-width:0}
+.ficha>header h3{font-size:19px;font-weight:600;margin:6px 0 8px;letter-spacing:-.01em}
+.ficha .ref{font-size:14px;color:var(--ink-soft)}
+.badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.badge{font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:3px 8px;border:1px solid var(--rule-hard);color:var(--ink-soft)}
+.badge.key{border-color:var(--accent);color:var(--accent)}
+.badge.pre{border-color:var(--pen);color:var(--pen)}
+.rows{padding:2px 24px 22px}
+.row{display:grid;gap:4px 20px;padding:15px 0;border-bottom:1px solid var(--rule)}
+@media(min-width:820px){.row{grid-template-columns:190px 1fr}}
+.row:last-child{border-bottom:none}
+.row>.lbl{font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-faint);padding-top:4px}
+.row>.lbl b{display:block;color:var(--accent);font-weight:400;margin-bottom:3px}
+.row>.val{font-size:15.5px;min-width:0}
+.row>.val p+p{margin-top:9px}
+.row>.val ul{list-style:none;display:grid;gap:7px;margin-top:2px}
+.row>.val li{padding-left:16px;position:relative}
+.row>.val li::before{content:"—";position:absolute;left:0;color:var(--ink-faint)}
+.row.mine{background:linear-gradient(90deg,var(--pen-bg),transparent 62%);margin:0 -24px;padding-left:24px;padding-right:24px}
+.row.mine>.lbl b{color:var(--pen)}
+p.todo{color:var(--pen);font-style:italic}
+code{font-family:var(--mono);font-size:13px;background:var(--surface-2);padding:1px 4px;border-radius:2px}
+a.xref{font-family:var(--mono);font-size:13.5px;text-decoration:none;border-bottom:1px solid var(--accent)}
+
+/* ---- edição ---- */
+.edit-grid{display:grid;gap:10px 16px;padding:18px 24px;background:var(--accent-bg);border-bottom:1px solid var(--rule-hard)}
+@media(min-width:760px){.edit-grid{grid-template-columns:repeat(3,1fr)}}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-family:var(--mono);font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-soft)}
+.field input,.field textarea{background:var(--surface);border:1px solid var(--rule-hard);padding:6px 9px;border-radius:2px;font-size:14px;width:100%}
+.row textarea{background:var(--surface);border:1px solid var(--rule-hard);padding:9px 11px;border-radius:2px;
+  font-family:var(--mono);font-size:13px;line-height:1.6;width:100%;min-height:90px;resize:vertical}
+.edit-bar{display:flex;gap:8px;padding:12px 24px;background:var(--accent-bg);border-bottom:1px solid var(--rule-hard);align-items:center;flex-wrap:wrap}
+.edit-bar .note{font-family:var(--mono);font-size:10.5px;color:var(--ink-soft);margin-left:auto}
+
+/* ---- análise ---- */
+.grid2{display:grid;gap:1px;background:var(--rule-hard);border:1px solid var(--rule-hard)}
+@media(min-width:900px){.grid2{grid-template-columns:1fr 1fr}}
+.grid2>div{background:var(--surface);padding:20px 22px 24px}
+.card{border:1px solid var(--rule-hard);background:var(--surface);padding:20px 22px 24px;margin-bottom:18px}
+.card h3{font-family:var(--sans);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px;color:var(--accent)}
+.card h4{font-size:15px;font-weight:600;margin:16px 0 6px}
+.card h4:first-of-type{margin-top:0}
+.lista{list-style:none;display:grid;gap:7px;font-size:14.5px}
+.lista li{padding-left:16px;position:relative;line-height:1.5}
+.lista li::before{content:"·";position:absolute;left:2px;color:var(--ink-faint)}
+.tag-iso{color:var(--pen);font-family:var(--mono);font-size:10px;letter-spacing:.08em}
+.tag-uni{color:var(--agree);font-family:var(--mono);font-size:10px;letter-spacing:.08em}
+.verdict{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;
+  padding:3px 8px;border-radius:2px;margin-top:8px}
+.v-tensao{background:var(--pen-bg);color:var(--pen)}
+.v-padrao{background:var(--accent-bg);color:var(--accent)}
+.v-indep{background:var(--agree-bg);color:var(--agree)}
+table.cross{border-collapse:collapse;width:100%;font-size:13px;font-family:var(--mono)}
+table.cross th,table.cross td{border:1px solid var(--rule);padding:8px 10px;text-align:left;vertical-align:top}
+table.cross th{background:var(--surface-2);font-weight:400;color:var(--ink-soft);font-size:11px;letter-spacing:.06em}
+table.cross td.empty{background:var(--pen-bg);color:var(--pen);text-align:center}
+.par{border-bottom:1px solid var(--rule);padding:14px 0}
+.par:last-child{border-bottom:none}
+.par b{font-family:var(--mono);font-size:13px}
+
+/* ---- modal ---- */
+.modal{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.55);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+.modal[hidden]{display:none}
+.modal-box{background:var(--surface);border:1px solid var(--rule-hard);max-width:720px;width:100%;padding:26px 28px 28px}
+.modal-box h3{font-size:19px;font-weight:600;margin-bottom:8px}
+.modal-box p{color:var(--ink-soft);font-size:14.5px;margin-bottom:16px}
+.modal-box textarea{width:100%;min-height:190px;font-family:var(--mono);font-size:12.5px;line-height:1.55;
+  background:var(--paper);border:1px solid var(--rule-hard);padding:11px;border-radius:2px;resize:vertical}
+.modal-box .field{margin-bottom:14px}
+.modal-actions{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap;align-items:center}
+.modal-actions .spacer{margin-left:auto}
+.msg{font-family:var(--mono);font-size:11.5px;padding:9px 12px;border-radius:2px;margin-top:14px}
+.msg.ok{background:var(--agree-bg);color:var(--agree)}
+.msg.err{background:var(--pen-bg);color:var(--pen)}
+.msg.warn{background:var(--warn-bg);color:var(--warn)}
+.empty-state{border:1px dashed var(--rule-hard);padding:40px 28px;text-align:center;color:var(--ink-soft)}
+.empty-state h3{font-size:18px;color:var(--ink);margin-bottom:8px}
+
+/* ---- recolher ---- */
+button.toggle{background:none;border:1px solid var(--rule-hard);color:var(--ink-soft);cursor:pointer;
+  width:26px;height:26px;border-radius:2px;font-family:var(--mono);font-size:13px;line-height:1;flex-shrink:0}
+button.toggle:hover{background:var(--surface-2);color:var(--accent);border-color:var(--accent)}
+.ficha.recolhida .rows{display:none}
+.ficha.recolhida>header{border-bottom:1px solid var(--rule-hard)}
+.resumo{display:none;font-size:14px;color:var(--ink-soft);margin-top:10px;line-height:1.5}
+.ficha.recolhida .resumo{display:block}
+.barra-ferramentas{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:18px}
+.barra-ferramentas .nota{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);margin-left:auto}
+.card.recolhida .card-corpo{display:none}
+.card>h3{display:flex;align-items:center;gap:10px}
+.card>h3 .toggle{margin-left:auto}
+
+/* ---- índice ---- */
+.indice{position:fixed;top:0;right:0;bottom:0;width:min(400px,92vw);z-index:60;background:var(--surface);
+  border-left:1px solid var(--rule-hard);box-shadow:-8px 0 28px rgba(0,0,0,.18);display:flex;flex-direction:column}
+.indice[hidden]{display:none}
+.indice>header{padding:18px 20px 14px;border-bottom:2px solid var(--ink);background:var(--surface-2);
+  display:flex;align-items:flex-start;gap:12px}
+.indice>header h3{font-size:17px;font-weight:600;flex:1}
+.indice .resumo-num{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;font-family:var(--mono);font-size:10.5px;color:var(--ink-soft)}
+.indice .corpo{overflow-y:auto;padding:6px 0 40px;flex:1}
+.indice .grupo{padding:14px 20px 6px}
+.indice .grupo>span{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-faint)}
+.indice .grupo.foco>span{color:var(--accent)}
+.ix{display:flex;gap:10px;align-items:baseline;width:100%;text-align:left;background:none;border:none;
+  border-bottom:1px solid var(--rule);padding:9px 20px;cursor:pointer;color:var(--ink)}
+.ix:hover{background:var(--accent-bg)}
+.ix.oculta{opacity:.42}
+.ix .ano{font-family:var(--mono);font-size:11px;color:var(--ink-faint);flex-shrink:0;width:34px}
+.ix .nome{flex:1;font-size:14.5px;line-height:1.35;min-width:0}
+.ix .nome small{display:block;font-family:var(--mono);font-size:10px;color:var(--ink-faint);margin-top:2px}
+.ix .st{font-family:var(--mono);font-size:9px;letter-spacing:.07em;text-transform:uppercase;padding:2px 5px;
+  border:1px solid var(--rule-hard);color:var(--ink-faint);flex-shrink:0}
+.ix .st.completa{border-color:var(--agree);color:var(--agree)}
+.ix .st.pre-ficha{border-color:var(--pen);color:var(--pen)}
+.backdrop{position:fixed;inset:0;z-index:55;background:rgba(0,0,0,.35)}
+.backdrop[hidden]{display:none}
+
+/* ---- países ---- */
+.pais{border:1px solid var(--rule-hard);background:var(--surface);margin-bottom:26px;scroll-margin-top:130px}
+.pais.foco{border-left:3px solid var(--accent)}
+.pais>header{padding:20px 24px 18px;border-bottom:2px solid var(--ink);background:var(--surface-2);
+  display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}
+.pais>header .h{flex:1 1 380px;min-width:0}
+.pais>header h3{font-size:21px;font-weight:600;letter-spacing:-.01em;margin:4px 0 6px}
+.pais .sub{font-size:14.5px;color:var(--ink-soft)}
+.pais.recolhida .rows{display:none}
+.selo{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;
+  border-radius:2px;background:var(--accent-bg);color:var(--accent)}
+.selo.sec{background:var(--surface);color:var(--ink-faint);border:1px solid var(--rule-hard)}
+.fichas-do-pais{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}
+.fichas-do-pais .rot-rel{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-faint);margin-right:2px}
+.fichas-do-pais button{font-family:var(--mono);font-size:10.5px;padding:4px 9px;border:1px solid var(--accent);
+  color:var(--accent);background:transparent;cursor:pointer;border-radius:2px}
+.fichas-do-pais button:hover{background:var(--accent-bg)}
+.fichas-do-pais button.fraca{border-color:var(--rule-hard);color:var(--ink-soft);border-style:dashed}
+.fichas-do-pais button.fraca:hover{background:var(--surface-2)}
+.chip.foco{border-color:var(--accent);font-weight:600}
+.chip.foco::before{content:"★ ";color:var(--accent)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <span class="eyebrow">Caderno de fichamentos</span>
+      <b id="subtitulo">—</b>
+    </div>
+    <div class="actions">
+      <span class="syncmsg"><span class="dot" id="dot"></span><span id="syncmsg">local</span></span>
+      <button class="btn quiet" id="btnIndice">Índice</button>
+      <button class="btn quiet" id="btnBuscar">Buscar</button>
+      <button class="btn solid" id="btnEnviar">Enviar</button>
+      <button class="btn quiet" id="btnNova">+ Ficha</button>
+      <button class="btn quiet" id="btnCfg">Config</button>
+    </div>
+  </div>
+  <nav class="tabs">
+    <button id="tab-matriz" aria-selected="true">Matriz</button>
+    <button id="tab-fichas" aria-selected="false">Fichas</button>
+    <button id="tab-paises" aria-selected="false">Países</button>
+    <button id="tab-analise" aria-selected="false">Análise</button>
+  </nav>
+  <div class="filters">
+    <div class="filters-in" id="filtros"></div>
+  </div>
+</header>
+
+<main>
+  <section class="pane" id="pane-matriz"></section>
+  <section class="pane" id="pane-fichas" hidden></section>
+  <section class="pane" id="pane-paises" hidden></section>
+  <section class="pane" id="pane-analise" hidden></section>
+</main>
+
+<div class="backdrop" id="backdrop" hidden></div>
+<aside class="indice" id="indice" hidden aria-label="Índice de fichas"></aside>
+
+<div class="modal" id="modal" hidden>
+  <div class="modal-box" id="modalBox"></div>
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================ constantes */
+
+const K_DADOS = "caderno-fichas-v1";
+const K_SYNC  = "caderno-sync";          // separado: o token nunca entra no backup
+const K_UI    = "caderno-ui";            // recolhidas: preferência de tela, não vai para o gist
+const ARQ     = "caderno.json";
+
+const EIXOS = {
+  campo:"Campo", genero:"Gênero", processo:"Processo", metodo:"Método",
+  nivel:"Nível", regiao:"Região", caso:"Caso", recorte:"Recorte",
+  criterio:"Critério de sucesso", posicao:"Posição", uso:"Uso na tese",
+  capitulo:"Capítulo", status:"Status"
+};
+
+/* O vocabulário controlado é o aparato analítico da tese, então também mora
+   no Gist (campo `vocab`). Sem dados carregados não há datalist — e também
+   não há nada para editar. */
+function vocab(){ return (estado && estado.vocab) ? estado.vocab : {}; }
+const LISTAS = ["regiao","refs","tags","filiacao"];   // campos multivalorados
+const META_ORDEM = ["id","autor","ano","titulo","zotero","doi","campo","genero","processo",
+  "filiacao","metodo","nivel","regiao","caso","recorte","criterio","posicao","uso","capitulo","status","refs","tags"];
+
+const SECOES_PADRAO = [
+  ["A1","Referência completa"],["A3","Campo e gênero"],["A4","Palavras-chave"],
+  ["B1","Problema e pergunta"],["B2","Argumento central"],["B3","Quadro teórico e filiação"],
+  ["B4","Conceitos operacionalizados"],["B5","Interlocutores"],["B6","Pressupostos não demonstrados"],
+  ["C1","Método"],["C2","Escopo"],["C3","Corpus e fontes"],["C4","Achados principais"],
+  ["C5","Critério de sucesso"],["D1","Contribuição declarada"],["D2","Limitações reconhecidas"],
+  ["D3","Minha crítica"],["D4","Posição normativa"],["D5","Uso na tese"],["D6","Diálogo"],
+  ["D7","Citações-chave"],["D8","Brecha aberta"]
+];
+const MINHA_VOZ = ["D3","D5","D6","D8"];
+const FILTRAVEIS = ["regiao","status","processo","nivel","criterio","capitulo","uso"];
+
+// Quais países são caso da tese é informação de pesquisa: vem dos dossiês
+// carregados do Gist (foco: true), não de uma lista neste arquivo público.
+function paisesFoco(){
+  return (estado.paises||[]).filter(p => p.foco).map(p => p.id);
+}
+
+const SECOES_PAIS = [
+  ["P1","Como o debate se deu"],["P2","Cronologia"],["P3","Atores e instituições"],
+  ["P4","Documentos-chave"],["P5","Tensões e lacunas"],["P6","O que ainda falta ler"]
+];
+
+/* ================================================================ estado */
+
+let estado = { schema:1, savedAt:null, fichas:[], paises:[] };
+let cfg    = { gist:"", token:"", seen:null };
+let ui     = { recolhidas:[], recolhidasPais:[] };
+let filtros = { busca:"" };
+FILTRAVEIS.forEach(f => filtros[f] = []);
+let aba = "matriz";
+let editando = null;      // id da ficha em edição
+let editandoPais = null;
+let sujo = false;         // há mudanças locais não enviadas
+
+/* =============================================================== helpers */
+
+const $  = s => document.querySelector(s);
+const el = (t,c,txt) => { const n=document.createElement(t); if(c)n.className=c; if(txt!=null)n.textContent=txt; return n; };
+const esc = s => String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const agora = () => new Date().toISOString();
+
+function campo(f, chave){
+  const v = f.meta ? f.meta[chave] : undefined;
+  if (v == null || v === "") return "";
+  return Array.isArray(v) ? v.join(", ") : String(v);
+}
+function lista(f, chave){
+  const v = f.meta ? f.meta[chave] : undefined;
+  if (v == null || v === "") return [];
+  return Array.isArray(v) ? v.slice() : String(v).split(",").map(s=>s.trim()).filter(Boolean);
+}
+function secao(f, cod){
+  const s = (f.secoes||[]).find(x => x.codigo === cod);
+  return s ? s.corpo : "";
+}
+function rotulo(f){
+  const a = campo(f,"autor") || f.id;
+  const primeiro = a.split(",")[0].trim();
+  return primeiro + " " + campo(f,"ano");
+}
+function pendentes(f){
+  return (f.secoes||[]).filter(s => /^\s*>\s*A preencher/i.test(s.corpo||"")).map(s=>s.codigo);
+}
+
+/* markdown mínimo — negrito, itálico, código, wikilink, lista, todo */
+function md(txt){
+  if (!txt) return "";
+  let h = esc(txt)
+    .replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>")
+    .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g,"$1<em>$2</em>")
+    .replace(/`([^`]+)`/g,"<code>$1</code>")
+    .replace(/\[\[([^\]]+)\]\]/g,'<a href="#f-$1" class="xref" data-jump="$1">$1</a>');
+  const out=[]; let emLista=false;
+  for (const linha of h.split("\n")){
+    const t = linha.trim();
+    if (/^[-*]\s+/.test(t)){
+      if(!emLista){out.push("<ul>");emLista=true;}
+      out.push("<li>"+t.replace(/^[-*]\s+/,"")+"</li>");
+    } else if (/^&gt;\s*/.test(t)){
+      if(emLista){out.push("</ul>");emLista=false;}
+      out.push('<p class="todo">'+t.replace(/^&gt;\s*/,"")+"</p>");
+    } else if (t){
+      if(emLista){out.push("</ul>");emLista=false;}
+      out.push("<p>"+t+"</p>");
+    }
+  }
+  if(emLista) out.push("</ul>");
+  return out.join("");
+}
+
+/* ============================================================ dossiês de país */
+/* Os dossiês são CONTEÚDO e moram no Gist, como as fichas. Este arquivo é
+   público: nada de texto de pesquisa aqui dentro. O app só sabe montar a
+   estrutura vazia; o que preenche vem do caderno.json. */
+
+function dossieVazio(id, nome){
+  return {
+    id, nome, foco:false, sub:"", aliases:[nome.toLowerCase()],
+    secoes: SECOES_PAIS.map(([codigo,titulo]) => ({ codigo, titulo, corpo:"> A preencher." }))
+  };
+}
+/* =========================================================== persistência */
+
+function salvarLocal(){
+  try {
+    localStorage.setItem(K_DADOS, JSON.stringify(estado));
+  } catch(e){ console.error("localStorage cheio?", e); }
+  pintarSync();
+}
+function carregarLocal(){
+  try {
+    const d = localStorage.getItem(K_DADOS);
+    if (d) estado = JSON.parse(d);
+    const c = localStorage.getItem(K_SYNC);
+    if (c) cfg = Object.assign(cfg, JSON.parse(c));
+    const u = localStorage.getItem(K_UI);
+    if (u) ui = Object.assign(ui, JSON.parse(u));
+  } catch(e){ console.error("dados locais corrompidos", e); }
+  normalizar();
+}
+
+/* cadernos gravados antes da aba Países não têm o campo — semear sem apagar nada */
+function normalizar(){
+  if (!Array.isArray(estado.fichas)) estado.fichas = [];
+  if (!Array.isArray(estado.paises)) estado.paises = [];   // vem do Gist, nunca do código
+  if (!Array.isArray(ui.recolhidas)) ui.recolhidas = [];
+  if (!Array.isArray(ui.recolhidasPais)) ui.recolhidasPais = [];
+}
+function salvarCfg(){ localStorage.setItem(K_SYNC, JSON.stringify(cfg)); }
+function salvarUi(){ localStorage.setItem(K_UI, JSON.stringify(ui)); }
+
+const estaRecolhida     = id => ui.recolhidas.includes(id);
+const estaRecolhidaPais = id => ui.recolhidasPais.includes(id);
+function alternarRecolhida(id, lista){
+  const i = lista.indexOf(id);
+  if (i >= 0) lista.splice(i,1); else lista.push(id);
+  salvarUi();
+}
+
+function pintarSync(){
+  const dot = $("#dot"), msg = $("#syncmsg");
+  dot.className = "dot";
+  if (!cfg.gist || !cfg.token){
+    // sem gist ainda há trabalho a perder: o aviso não pode sumir
+    if (sujo){ dot.classList.add("dirty"); msg.textContent = "alterações locais · sem sincronia"; }
+    else { msg.textContent = "sem sincronia"; }
+    return;
+  }
+  if (sujo){ dot.classList.add("dirty"); msg.textContent = "alterações locais"; return; }
+  dot.classList.add("ok");
+  msg.textContent = estado.savedAt ? "sincronizado " + estado.savedAt.slice(0,16).replace("T"," ") : "pronto";
+}
+
+/* ================================================================= gist */
+
+async function gistGet(){
+  const r = await fetch("https://api.github.com/gists/" + cfg.gist, {
+    headers:{ Authorization:"Bearer "+cfg.token, Accept:"application/vnd.github+json" }
+  });
+  if (!r.ok) throw new Error("GitHub respondeu " + r.status + " ao buscar o gist.");
+  const g = await r.json();
+  const arq = g.files && g.files[ARQ];
+  if (!arq) return null;
+  // gists grandes vêm truncados; nesse caso o conteúdo real está no raw_url
+  const texto = arq.truncated ? await (await fetch(arq.raw_url)).text() : arq.content;
+  return JSON.parse(texto);
+}
+
+async function gistPut(payload){
+  const r = await fetch("https://api.github.com/gists/" + cfg.gist, {
+    method:"PATCH",
+    headers:{ Authorization:"Bearer "+cfg.token, Accept:"application/vnd.github+json",
+              "Content-Type":"application/json" },
+    body: JSON.stringify({ files: { [ARQ]: { content: JSON.stringify(payload, null, 2) } } })
+  });
+  if (!r.ok) throw new Error("GitHub respondeu " + r.status + " ao gravar o gist.");
+  return r.json();
+}
+
+async function buscar({silencioso=false}={}){
+  if (!cfg.gist || !cfg.token) return abrirConfig("Configure o Gist e o token antes de sincronizar.");
+  try {
+    const remoto = await gistGet();
+    if (!remoto){ return aviso("O gist ainda não tem " + ARQ + ". Use Enviar para criar o arquivo.", "warn"); }
+    if (sujo && !confirm("Você tem alterações locais não enviadas. Buscar vai descartá-las. Continuar?")) return;
+    estado = remoto;
+    normalizar();                       // gists antigos não trazem paises[]
+    cfg.seen = remoto.savedAt || null;
+    sujo = false;
+    salvarLocal(); salvarCfg(); render();
+    if (!silencioso) aviso("Caderno atualizado: " + estado.fichas.length + " fichas.", "ok");
+  } catch(e){ aviso(e.message, "err"); }
+}
+
+async function enviar(){
+  if (!cfg.gist || !cfg.token) return abrirConfig("Configure o Gist e o token antes de sincronizar.");
+  try {
+    // conflito por timestamp: o remoto mudou desde a última vez que vi?
+    let remoto = null;
+    try { remoto = await gistGet(); } catch(e){ /* gist novo ou vazio */ }
+    if (remoto && remoto.savedAt && cfg.seen && remoto.savedAt !== cfg.seen){
+      const ok = confirm(
+        "O gist foi alterado por outra sessão em " + remoto.savedAt.slice(0,16).replace("T"," ") +
+        ".\nEnviar agora sobrescreve aquela versão.\n\nSobrescrever?");
+      if (!ok) return;
+    }
+    estado.savedAt = agora();
+    estado.schema = 1;
+    await gistPut(estado);
+    cfg.seen = estado.savedAt;
+    sujo = false;
+    salvarLocal(); salvarCfg();
+    aviso("Enviado: " + estado.fichas.length + " fichas.", "ok");
+  } catch(e){ aviso(e.message, "err"); }
+}
+
+/* =============================================================== filtros */
+
+function fichasVisiveis(){
+  const termo = filtros.busca.trim().toLowerCase();
+  return estado.fichas.filter(f => {
+    for (const chave of FILTRAVEIS){
+      const sel = filtros[chave];
+      if (sel.length === 0) continue;
+      const vals = lista(f, chave).length ? lista(f, chave) : [campo(f, chave)];
+      if (!vals.some(v => sel.includes(v))) return false;
+    }
+    if (termo){
+      const alvo = [
+        JSON.stringify(f.meta||{}),
+        (f.secoes||[]).map(s => s.titulo + " " + s.corpo).join(" ")
+      ].join(" ").toLowerCase();
+      if (!alvo.includes(termo)) return false;
+    }
+    return true;
+  });
+}
+
+function valoresDe(chave){
+  const set = new Set();
+  estado.fichas.forEach(f => {
+    const vals = lista(f, chave).length ? lista(f, chave) : [campo(f, chave)];
+    vals.forEach(v => { if (v) set.add(v); });
+  });
+  return [...set].sort();
+}
+
+function renderFiltros(){
+  const box = $("#filtros");
+  box.innerHTML = "";
+
+  const gBusca = el("div","fgroup");
+  gBusca.appendChild(el("span",null,"Busca"));
+  const inp = el("input","search");
+  inp.type="search"; inp.placeholder="autor, conceito, trecho…"; inp.value = filtros.busca;
+  inp.addEventListener("input", e => { filtros.busca = e.target.value; renderConteudo(); atualizarContagem(); });
+  gBusca.appendChild(inp);
+  box.appendChild(gBusca);
+
+  FILTRAVEIS.forEach(chave => {
+    let vals = valoresDe(chave);
+    if (vals.length < 2) return;
+    // os quatro casos da tese vêm primeiro e marcados
+    if (chave === "regiao"){
+      vals = vals.slice().sort((a,b) => {
+        const foco = paisesFoco();
+        const fa = foco.indexOf(a), fb = foco.indexOf(b);
+        if (fa >= 0 && fb >= 0) return fa - fb;
+        if (fa >= 0) return -1;
+        if (fb >= 0) return 1;
+        return a.localeCompare(b);
+      });
+    }
+    const g = el("div","fgroup");
+    g.appendChild(el("span",null,EIXOS[chave]||chave));
+    const chips = el("div","chips");
+    vals.forEach(v => {
+      const foco = chave === "regiao" && paisesFoco().includes(v);
+      const b = el("button", foco ? "chip foco" : "chip", v);
+      b.type="button";
+      b.setAttribute("aria-pressed", filtros[chave].includes(v) ? "true" : "false");
+      b.addEventListener("click", () => {
+        const i = filtros[chave].indexOf(v);
+        if (i >= 0) filtros[chave].splice(i,1); else filtros[chave].push(v);
+        renderFiltros(); renderConteudo(); atualizarContagem();
+      });
+      chips.appendChild(b);
+    });
+    g.appendChild(chips);
+    box.appendChild(g);
+  });
+
+  const limpar = el("div","fgroup");
+  limpar.appendChild(el("span",null," "));
+  const bl = el("button","btn quiet","Limpar");
+  bl.type="button";
+  bl.addEventListener("click", () => {
+    filtros.busca=""; FILTRAVEIS.forEach(f=>filtros[f]=[]);
+    renderFiltros(); renderConteudo(); atualizarContagem();
+  });
+  limpar.appendChild(bl);
+  box.appendChild(limpar);
+
+  const cont = el("span","fcount"); cont.id="fcount";
+  box.appendChild(cont);
+  atualizarContagem();
+}
+function atualizarContagem(){
+  const c = $("#fcount"); if (!c) return;
+  const v = fichasVisiveis().length, t = estado.fichas.length;
+  c.textContent = v === t ? t + " fichas" : v + " de " + t + " fichas";
+}
+
+/* ================================================================ matriz */
+
+function renderMatriz(){
+  const pane = $("#pane-matriz");
+  pane.innerHTML = "";
+  const fs = fichasVisiveis();
+  if (!fs.length) return pane.appendChild(vazio());
+
+  pane.appendChild(Object.assign(el("h2","sec","Matriz comparativa"),{}));
+  const p = el("p","hint","Os campos-eixo lado a lado. Os filtros acima recortam as colunas — para comparar só o que já leu, marque status «completa».");
+  pane.appendChild(p);
+
+  const sc = el("div","scroller");
+  const t = el("table","matrix");
+  const thead = el("thead"), trh = el("tr");
+  trh.appendChild(Object.assign(el("th","axis","Eixo"),{}));
+  fs.forEach(f => {
+    const th = el("th");
+    const who = el("span","who", rotulo(f) + (campo(f,"status")==="pre-ficha" ? " · pré-ficha" : ""));
+    th.appendChild(who);
+    th.appendChild(document.createTextNode(campo(f,"titulo") || f.id));
+    trh.appendChild(th);
+  });
+  thead.appendChild(trh); t.appendChild(thead);
+
+  const tb = el("tbody");
+  Object.keys(EIXOS).forEach(chave => {
+    const tr = el("tr");
+    tr.appendChild(el("th","axis",EIXOS[chave]));
+    fs.forEach(f => {
+      const v = campo(f,chave);
+      const td = el("td", v ? null : "vazio", v || "—");
+      tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb); sc.appendChild(t); pane.appendChild(sc);
+}
+
+function vazio(){
+  const d = el("div","empty-state");
+  if (!estado.fichas.length){
+    d.appendChild(el("h3",null,"Caderno vazio"));
+    d.appendChild(el("p",null,"Use Config para ligar o Gist e Buscar, ou importe o caderno.json gerado pelo script local."));
+    const b = el("button","btn solid","Importar caderno.json");
+    b.addEventListener("click", abrirImportar);
+    d.appendChild(el("div",null," "));
+    d.appendChild(b);
+  } else {
+    d.appendChild(el("h3",null,"Nenhuma ficha passa nos filtros"));
+    d.appendChild(el("p",null,"Afrouxe os filtros ou limpe a busca."));
+  }
+  return d;
+}
+
+/* ================================================================ fichas */
+
+function renderFichas(){
+  const pane = $("#pane-fichas");
+  pane.innerHTML = "";
+  const fs = fichasVisiveis();
+  if (!fs.length) return pane.appendChild(vazio());
+
+  const barra = el("div","barra-ferramentas");
+  const bRec = el("button","btn quiet","Recolher todas");
+  bRec.addEventListener("click", () => {
+    fs.forEach(f => { if (!estaRecolhida(f.id)) ui.recolhidas.push(f.id); });
+    salvarUi(); renderConteudo();
+  });
+  const bExp = el("button","btn quiet","Expandir todas");
+  bExp.addEventListener("click", () => {
+    ui.recolhidas = ui.recolhidas.filter(id => !fs.some(f => f.id === id));
+    salvarUi(); renderConteudo();
+  });
+  const bIdx = el("button","btn quiet","Índice");
+  bIdx.addEventListener("click", abrirIndice);
+  barra.appendChild(bRec); barra.appendChild(bExp); barra.appendChild(bIdx);
+  const nRec = fs.filter(f => estaRecolhida(f.id)).length;
+  barra.appendChild(el("span","nota", nRec ? nRec + " de " + fs.length + " recolhidas" : fs.length + " expandidas"));
+  pane.appendChild(barra);
+
+  fs.forEach(f => pane.appendChild(editando === f.id ? cardEdicao(f) : cardLeitura(f)));
+}
+
+/* ================================================================ índice */
+
+function abrirIndice(){
+  const dr = $("#indice");
+  dr.innerHTML = "";
+  const visiveis = new Set(fichasVisiveis().map(f => f.id));
+  const todas = estado.fichas.slice().sort((a,b) =>
+    (campo(a,"ano")||"").localeCompare(campo(b,"ano")||"") || (campo(a,"autor")||"").localeCompare(campo(b,"autor")||""));
+
+  const hd = el("header");
+  const hh = el("div"); hh.style.flex = "1";
+  hh.appendChild(el("h3",null,"Índice"));
+  const nums = el("div","resumo-num");
+  const conta = st => todas.filter(f => campo(f,"status") === st).length;
+  nums.appendChild(el("span",null, todas.length + " fichas"));
+  if (conta("completa"))  nums.appendChild(el("span",null, conta("completa") + " completas"));
+  if (conta("pre-ficha")) nums.appendChild(el("span",null, conta("pre-ficha") + " pré-fichas"));
+  if (visiveis.size !== todas.length) nums.appendChild(el("span",null, visiveis.size + " passam nos filtros"));
+  hh.appendChild(nums);
+  hd.appendChild(hh);
+  const fechar = el("button","toggle","×");
+  fechar.title = "Fechar"; fechar.addEventListener("click", fecharIndice);
+  hd.appendChild(fechar);
+  dr.appendChild(hd);
+
+  const corpo = el("div","corpo");
+
+  /* cada ficha entra num grupo só, senão a contagem do índice mente.
+     Prioridade: primeiro caso da tese que ela cobre; senão a primeira região. */
+  const grupoDe = f => {
+    const rs = lista(f,"regiao");
+    const foco = paisesFoco().find(p => rs.includes(p));
+    if (foco) return foco;
+    return rs.length ? rs[0] : "__sem";
+  };
+  const porGrupo = {};
+  todas.forEach(f => { (porGrupo[grupoDe(f)] = porGrupo[grupoDe(f)] || []).push(f); });
+
+  const ordem = paisesFoco();
+  Object.keys(porGrupo).sort().forEach(k => { if (!ordem.includes(k) && k !== "__sem") ordem.push(k); });
+  ordem.push("__sem");
+
+  ordem.forEach(chave => {
+    const doGrupo = porGrupo[chave];
+    if (!doGrupo || !doGrupo.length) return;
+    const foco = paisesFoco().includes(chave);
+    const bloco = el("div", foco ? "grupo foco" : "grupo");
+    const rot = chave === "__sem" ? "Sem região declarada" : nomePais(chave);
+    bloco.appendChild(el("span",null, rot + " · " + doGrupo.length));
+    corpo.appendChild(bloco);
+    doGrupo.forEach(f => {
+      const b = el("button", visiveis.has(f.id) ? "ix" : "ix oculta");
+      b.appendChild(el("span","ano", campo(f,"ano") || "—"));
+      const nome = el("span","nome", rotulo(f));
+      // as demais regiões da ficha ficam anotadas, para não sumirem do índice
+      const extras = lista(f,"regiao").filter(r => r !== chave);
+      const sm = el("small", null, (campo(f,"titulo") || f.id) + (extras.length ? "  ·  também: " + extras.join(", ") : ""));
+      nome.appendChild(sm);
+      b.appendChild(nome);
+      const st = campo(f,"status") || "—";
+      b.appendChild(el("span","st " + st, st));
+      b.addEventListener("click", () => { fecharIndice(); irParaFicha(f.id); });
+      corpo.appendChild(b);
+    });
+  });
+
+  dr.appendChild(corpo);
+  dr.hidden = false;
+  $("#backdrop").hidden = false;
+}
+function fecharIndice(){ $("#indice").hidden = true; $("#backdrop").hidden = true; }
+
+/* O rótulo bonito de uma região vem do dossiê correspondente, que está no
+   Gist. Sem dossiê, mostra o próprio slug — nomes de país não ficam neste
+   arquivo público. Criar o dossiê é o que arruma o rótulo. */
+function nomePais(chave){
+  const p = (estado.paises||[]).find(x => x.id === chave);
+  if (p && p.nome) return p.nome;
+  return chave.replace(/-/g," ").replace(/^\w/, c => c.toUpperCase());
+}
+
+function irParaFicha(id){
+  if (!estado.fichas.some(f => f.id === id)) return aviso("Ainda não existe uma ficha " + id + ".", "warn");
+  // uma ficha recolhida precisa abrir, senão o salto leva a um cabeçalho mudo
+  const i = ui.recolhidas.indexOf(id);
+  if (i >= 0){ ui.recolhidas.splice(i,1); salvarUi(); }
+  irPara("fichas");
+  setTimeout(() => { const n = document.getElementById("f-"+id); if (n) n.scrollIntoView({block:"start"}); }, 40);
+}
+
+function cardLeitura(f){
+  const art = el("article", estaRecolhida(f.id) ? "ficha recolhida" : "ficha");
+  art.id = "f-" + f.id;
+
+  const hd = el("header");
+  const h = el("div","h");
+  h.appendChild(el("span","eyebrow", f.id + " · " + (campo(f,"status")||"sem status")));
+  h.appendChild(el("h3", null, campo(f,"titulo") || f.id));
+  const ref = el("div","ref"); ref.innerHTML = md(secao(f,"A1")); h.appendChild(ref);
+
+  const bg = el("div","badges");
+  if (campo(f,"zotero")) bg.appendChild(el("span","badge","Zotero " + campo(f,"zotero")));
+  if (campo(f,"status")==="pre-ficha") bg.appendChild(el("span","badge pre","pré-ficha · bloco D em aberto"));
+  const pend = pendentes(f);
+  if (pend.length) bg.appendChild(el("span","badge pre", pend.length + " campos a preencher"));
+  const foco = paisesFoco();
+  lista(f,"regiao").forEach(r => bg.appendChild(el("span", foco.includes(r) ? "badge key" : "badge", r)));
+  lista(f,"tags").forEach(t => bg.appendChild(el("span","badge key",t)));
+  h.appendChild(bg);
+
+  // visível só quando recolhida: o argumento central basta para reconhecer a ficha
+  const resumo = el("div","resumo");
+  resumo.innerHTML = md(secao(f,"B2") || secao(f,"B1") || "");
+  h.appendChild(resumo);
+  hd.appendChild(h);
+
+  const bt = el("button","btn quiet","Editar");
+  bt.addEventListener("click", () => { editando = f.id; renderConteudo();
+    setTimeout(()=>{ const n=document.getElementById("f-"+f.id); if(n) n.scrollIntoView({block:"start"}); },0); });
+  hd.appendChild(bt);
+
+  const tg = el("button","toggle", estaRecolhida(f.id) ? "+" : "−");
+  tg.type = "button";
+  tg.title = estaRecolhida(f.id) ? "Expandir" : "Recolher";
+  tg.setAttribute("aria-expanded", estaRecolhida(f.id) ? "false" : "true");
+  tg.addEventListener("click", () => {
+    alternarRecolhida(f.id, ui.recolhidas);
+    art.classList.toggle("recolhida");
+    const fechada = art.classList.contains("recolhida");
+    tg.textContent = fechada ? "+" : "−";
+    tg.title = fechada ? "Expandir" : "Recolher";
+    tg.setAttribute("aria-expanded", fechada ? "false" : "true");
+  });
+  hd.appendChild(tg);
+  art.appendChild(hd);
+
+  const rows = el("div","rows");
+  (f.secoes||[]).forEach(s => {
+    if (s.codigo === "A1") return;
+    const r = el("div", MINHA_VOZ.includes(s.codigo) ? "row mine" : "row");
+    const l = el("div","lbl"); l.appendChild(el("b",null,s.codigo));
+    l.appendChild(document.createTextNode(s.titulo||""));
+    const v = el("div","val"); v.innerHTML = md(s.corpo);
+    r.appendChild(l); r.appendChild(v); rows.appendChild(r);
+  });
+  art.appendChild(rows);
+  return art;
+}
+
+function cardEdicao(f){
+  const art = el("article","ficha"); art.id = "f-" + f.id;
+  const rascunho = JSON.parse(JSON.stringify(f));
+
+  const bar = el("div","edit-bar");
+  const salvar = el("button","btn solid","Salvar");
+  const cancelar = el("button","btn quiet","Cancelar");
+  const apagar = el("button","btn danger","Apagar ficha");
+  bar.appendChild(salvar); bar.appendChild(cancelar); bar.appendChild(apagar);
+  bar.appendChild(el("span","note","editando " + f.id + " — nada sai daqui até você clicar em Enviar"));
+  art.appendChild(bar);
+
+  // datalists do vocabulário controlado
+  Object.keys(vocab()).forEach(k => {
+    if (document.getElementById("dl-"+k)) return;
+    const dl = el("datalist"); dl.id = "dl-"+k;
+    vocab()[k].forEach(v => { const o = el("option"); o.value = v; dl.appendChild(o); });
+    document.body.appendChild(dl);
+  });
+
+  const grid = el("div","edit-grid");
+  META_ORDEM.forEach(k => {
+    const fd = el("div","field");
+    const lb = el("label", null, k + (LISTAS.includes(k) ? "  (vírgulas)" : ""));
+    const inp = el("input");
+    inp.value = campo(rascunho, k);
+    if (vocab()[k]) inp.setAttribute("list","dl-"+k);
+    if (k === "id") inp.disabled = true;
+    inp.addEventListener("input", e => {
+      const val = e.target.value;
+      rascunho.meta = rascunho.meta || {};
+      rascunho.meta[k] = LISTAS.includes(k)
+        ? val.split(",").map(s=>s.trim()).filter(Boolean)
+        : val;
+    });
+    fd.appendChild(lb); fd.appendChild(inp); grid.appendChild(fd);
+  });
+  art.appendChild(grid);
+
+  const rows = el("div","rows");
+  (rascunho.secoes||[]).forEach((s, i) => {
+    const r = el("div", MINHA_VOZ.includes(s.codigo) ? "row mine" : "row");
+    const l = el("div","lbl"); l.appendChild(el("b",null,s.codigo));
+    l.appendChild(document.createTextNode(s.titulo||""));
+    const v = el("div","val");
+    const ta = el("textarea"); ta.value = s.corpo || "";
+    ta.rows = Math.min(20, Math.max(3, (s.corpo||"").split("\n").length + 1));
+    ta.addEventListener("input", e => { rascunho.secoes[i].corpo = e.target.value; });
+    v.appendChild(ta);
+    r.appendChild(l); r.appendChild(v); rows.appendChild(r);
+  });
+  art.appendChild(rows);
+
+  salvar.addEventListener("click", () => {
+    const idx = estado.fichas.findIndex(x => x.id === f.id);
+    if (idx >= 0) estado.fichas[idx] = rascunho;
+    editando = null; sujo = true; salvarLocal(); render();
+  });
+  cancelar.addEventListener("click", () => { editando = null; renderConteudo(); });
+  apagar.addEventListener("click", () => {
+    if (!confirm("Apagar a ficha " + f.id + "? Isso só vale localmente até você clicar em Enviar.")) return;
+    estado.fichas = estado.fichas.filter(x => x.id !== f.id);
+    editando = null; sujo = true; salvarLocal(); render();
+  });
+
+  return art;
+}
+
+/* ================================================================ países */
+
+/* Duas relações diferentes, que não podem aparecer como uma só:
+   COBREM  — a ficha declara o país em regiao[]: é caso dela.
+   MENCIONAM — o país aparece no texto, muitas vezes numa nota minha de
+   comparação. Útil de rastrear, péssimo de confundir com cobertura. */
+function fichasDoPais(pais){
+  const alvos = (pais.aliases && pais.aliases.length ? pais.aliases : [pais.nome])
+                  .map(a => a.toLowerCase()).filter(Boolean);
+  const cobrem = [], mencionam = [];
+  estado.fichas.forEach(f => {
+    if (lista(f,"regiao").includes(pais.id)) return cobrem.push(f);
+    if (pais.id === "outros") return;
+    const texto = (f.secoes||[]).map(s => s.corpo).join(" ").toLowerCase();
+    if (alvos.some(a => texto.includes(a))) mencionam.push(f);
+  });
+  return { cobrem, mencionam };
+}
+
+function renderPaises(){
+  const pane = $("#pane-paises");
+  pane.innerHTML = "";
+
+  pane.appendChild(el("h2","sec","Países"));
+  pane.appendChild(el("p","hint",
+    "Os dossiês são conteúdo e vivem no Gist, junto com as fichas. As fichas relacionadas a cada um são calculadas: «cobrem» vem da região declarada, «mencionam» vem do texto."));
+
+  if (!estado.paises.length){
+    const d = el("div","empty-state");
+    d.appendChild(el("h3",null,"Nenhum dossiê carregado"));
+    d.appendChild(el("p",null,"Os dossiês de país vêm do Gist, como as fichas. Clique em Buscar, ou crie um em branco."));
+    const b = el("button","btn solid","+ Dossiê");
+    b.addEventListener("click", novoDossie);
+    d.appendChild(el("div",null," ")); d.appendChild(b);
+    return pane.appendChild(d);
+  }
+
+  const barra = el("div","barra-ferramentas");
+  const bRec = el("button","btn quiet","Recolher todos");
+  bRec.addEventListener("click", () => {
+    estado.paises.forEach(p => { if (!estaRecolhidaPais(p.id)) ui.recolhidasPais.push(p.id); });
+    salvarUi(); renderConteudo();
+  });
+  const bExp = el("button","btn quiet","Expandir todos");
+  bExp.addEventListener("click", () => { ui.recolhidasPais = []; salvarUi(); renderConteudo(); });
+  const bNovo = el("button","btn quiet","+ Dossiê");
+  bNovo.addEventListener("click", novoDossie);
+  barra.appendChild(bRec); barra.appendChild(bExp); barra.appendChild(bNovo);
+  barra.appendChild(el("span","nota", estado.paises.filter(p=>p.foco).length + " casos em foco"));
+  pane.appendChild(barra);
+
+  const ordenados = estado.paises.slice().sort((a,b) => (b.foco?1:0) - (a.foco?1:0));
+  ordenados.forEach(p => pane.appendChild(editandoPais === p.id ? cardPaisEdicao(p) : cardPais(p)));
+}
+
+function cardPais(p){
+  const art = el("article", "pais" + (p.foco ? " foco" : "") + (estaRecolhidaPais(p.id) ? " recolhida" : ""));
+  art.id = "p-" + p.id;
+
+  const hd = el("header");
+  const h = el("div","h");
+  const selos = el("div","badges"); selos.style.marginTop = "0";
+  selos.appendChild(el("span", p.foco ? "selo" : "selo sec", p.foco ? "caso da tese" : "pano de fundo"));
+  h.appendChild(selos);
+  h.appendChild(el("h3", null, p.nome));
+  if (p.sub) h.appendChild(el("div","sub", p.sub));
+
+  const rel = fichasDoPais(p);
+  const linha = (rot, arr, forte) => {
+    if (!arr.length) return;
+    const box = el("div","fichas-do-pais");
+    box.appendChild(el("span","rot-rel", rot));
+    arr.forEach(f => {
+      const b = el("button", forte ? null : "fraca", rotulo(f));
+      b.title = campo(f,"titulo");
+      b.addEventListener("click", () => irParaFicha(f.id));
+      box.appendChild(b);
+    });
+    h.appendChild(box);
+  };
+  linha("cobrem", rel.cobrem, true);
+  linha("mencionam", rel.mencionam, false);
+  if (!rel.cobrem.length && !rel.mencionam.length){
+    h.appendChild(el("div","sub","Nenhuma ficha cobre este caso ainda."));
+  } else if (!rel.cobrem.length){
+    h.appendChild(el("div","sub","Nenhuma ficha tem este país como caso — só menções de passagem."));
+  }
+  hd.appendChild(h);
+
+  const bt = el("button","btn quiet","Editar");
+  bt.addEventListener("click", () => { editandoPais = p.id; renderConteudo();
+    setTimeout(()=>{ const n=document.getElementById("p-"+p.id); if(n) n.scrollIntoView({block:"start"}); },0); });
+  hd.appendChild(bt);
+
+  const tg = el("button","toggle", estaRecolhidaPais(p.id) ? "+" : "−");
+  tg.type="button"; tg.title = estaRecolhidaPais(p.id) ? "Expandir" : "Recolher";
+  tg.setAttribute("aria-expanded", estaRecolhidaPais(p.id) ? "false" : "true");
+  tg.addEventListener("click", () => {
+    alternarRecolhida(p.id, ui.recolhidasPais);
+    art.classList.toggle("recolhida");
+    const fechada = art.classList.contains("recolhida");
+    tg.textContent = fechada ? "+" : "−";
+    tg.title = fechada ? "Expandir" : "Recolher";
+    tg.setAttribute("aria-expanded", fechada ? "false" : "true");
+  });
+  hd.appendChild(tg);
+  art.appendChild(hd);
+
+  const rows = el("div","rows");
+  (p.secoes||[]).forEach(s => {
+    const r = el("div","row");
+    const l = el("div","lbl"); l.appendChild(el("b",null,s.codigo));
+    l.appendChild(document.createTextNode(s.titulo||""));
+    const v = el("div","val"); v.innerHTML = md(s.corpo);
+    r.appendChild(l); r.appendChild(v); rows.appendChild(r);
+  });
+  art.appendChild(rows);
+  return art;
+}
+
+function novoDossie(){
+  abrirModal(b => {
+    b.appendChild(el("h3",null,"Dossiê novo"));
+    b.appendChild(el("p",null,"Cria a estrutura vazia com as seis seções. O conteúdo é seu e fica no Gist."));
+    const f1 = el("div","field");
+    f1.appendChild(el("label",null,"id — minúsculas e hífen; é o mesmo valor usado no campo regiao das fichas"));
+    const i1 = el("input"); i1.placeholder="ex.: alemanha"; f1.appendChild(i1); b.appendChild(f1);
+    const f2 = el("div","field");
+    f2.appendChild(el("label",null,"nome")); const i2 = el("input"); i2.placeholder="ex.: Alemanha"; f2.appendChild(i2); b.appendChild(f2);
+
+    const a = el("div","modal-actions");
+    const ok = el("button","btn solid","Criar");
+    ok.addEventListener("click", () => {
+      const id = i1.value.trim().toLowerCase().replace(/\s+/g,"-");
+      if (!id) return aviso("O id é obrigatório.", "err");
+      if (estado.paises.some(x => x.id === id)) return aviso("Já existe um dossiê com esse id.", "err");
+      estado.paises.push(dossieVazio(id, i2.value.trim() || id));
+      sujo = true; editandoPais = id; salvarLocal(); fecharModal(); irPara("paises"); render();
+    });
+    const fe = el("button","btn quiet","Cancelar"); fe.addEventListener("click", fecharModal);
+    a.appendChild(ok); const sp=el("span","spacer"); a.appendChild(sp); a.appendChild(fe);
+    b.appendChild(a);
+  });
+}
+
+function cardPaisEdicao(p){
+  const art = el("article","pais" + (p.foco ? " foco" : ""));
+  art.id = "p-" + p.id;
+  const rascunho = JSON.parse(JSON.stringify(p));
+
+  const bar = el("div","edit-bar");
+  const salvar = el("button","btn solid","Salvar");
+  const cancelar = el("button","btn quiet","Cancelar");
+  bar.appendChild(salvar); bar.appendChild(cancelar);
+  bar.appendChild(el("span","note","editando o dossiê de " + p.nome));
+  art.appendChild(bar);
+
+  const grid = el("div","edit-grid");
+  [["nome","nome"],["sub","linha de resumo"]].forEach(([k,rot]) => {
+    const fd = el("div","field");
+    fd.appendChild(el("label",null,rot));
+    const inp = el("input"); inp.value = rascunho[k] || "";
+    inp.addEventListener("input", e => { rascunho[k] = e.target.value; });
+    fd.appendChild(inp); grid.appendChild(fd);
+  });
+  const fdAl = el("div","field");
+  fdAl.appendChild(el("label",null,"apelidos p/ detectar menções (vírgulas)"));
+  const inpAl = el("input");
+  inpAl.value = (rascunho.aliases||[]).join(", ");
+  inpAl.placeholder = "radicais, separados por vírgula";
+  inpAl.addEventListener("input", e => {
+    rascunho.aliases = e.target.value.split(",").map(s=>s.trim()).filter(Boolean);
+  });
+  fdAl.appendChild(inpAl); grid.appendChild(fdAl);
+  const fdFoco = el("div","field");
+  fdFoco.appendChild(el("label",null,"caso da tese"));
+  const sel = el("select");
+  ["sim","não"].forEach(o => { const op = el("option"); op.value = o; op.textContent = o; sel.appendChild(op); });
+  sel.value = rascunho.foco ? "sim" : "não";
+  sel.style.cssText = "background:var(--surface);border:1px solid var(--rule-hard);padding:6px 9px;border-radius:2px";
+  sel.addEventListener("change", e => { rascunho.foco = e.target.value === "sim"; });
+  fdFoco.appendChild(sel); grid.appendChild(fdFoco);
+  art.appendChild(grid);
+
+  const rows = el("div","rows");
+  (rascunho.secoes||[]).forEach((s,i) => {
+    const r = el("div","row");
+    const l = el("div","lbl"); l.appendChild(el("b",null,s.codigo));
+    l.appendChild(document.createTextNode(s.titulo||""));
+    const v = el("div","val");
+    const ta = el("textarea"); ta.value = s.corpo || "";
+    ta.rows = Math.min(24, Math.max(4, (s.corpo||"").split("\n").length + 1));
+    ta.addEventListener("input", e => { rascunho.secoes[i].corpo = e.target.value; });
+    v.appendChild(ta); r.appendChild(l); r.appendChild(v); rows.appendChild(r);
+  });
+  art.appendChild(rows);
+
+  salvar.addEventListener("click", () => {
+    const i = estado.paises.findIndex(x => x.id === p.id);
+    if (i >= 0) estado.paises[i] = rascunho;
+    editandoPais = null; sujo = true; salvarLocal(); render();
+  });
+  cancelar.addEventListener("click", () => { editandoPais = null; renderConteudo(); });
+  return art;
+}
+
+/* =============================================================== análise */
+/* mesma lógica do Invoke-Caderno.ps1, recalculada a cada edição */
+
+function analise(fs){
+  const ids = fs.map(f => f.id);
+
+  // 1. panorama
+  const panorama = {};
+  Object.keys(EIXOS).forEach(chave => {
+    const mapa = {};
+    fs.forEach(f => {
+      const vals = lista(f,chave).length ? lista(f,chave) : [campo(f,chave) || "—"];
+      vals.forEach(v => { (mapa[v] = mapa[v] || []).push(f.id); });
+    });
+    panorama[chave] = mapa;
+  });
+
+  // 2. co-citação
+  const refs = {};
+  fs.forEach(f => lista(f,"refs").forEach(r => { (refs[r] = refs[r] || []).push(f.id); }));
+
+  // 3. pares
+  const EIXOS_PAR = ["processo","criterio","posicao","nivel","metodo","campo"];
+  const pares = [];
+  for (let a=0; a<fs.length; a++) for (let b=a+1; b<fs.length; b++){
+    const fa=fs[a], fb=fs[b];
+    const ra=lista(fa,"refs"), rb=lista(fb,"refs");
+    const comuns = ra.filter(r => rb.includes(r));
+    const divergem=[], convergem=[];
+    EIXOS_PAR.forEach(k => {
+      const va=campo(fa,k), vb=campo(fb,k);
+      if (va === vb) convergem.push(k);
+      else divergem.push({ eixo:k, a:va||"—", b:vb||"—", decisivo:(k==="processo"||k==="criterio") });
+    });
+    let veredito=null, classe="";
+    const temDecisivo = divergem.some(d => d.decisivo);
+    if (comuns.length>=3 && divergem.length>=3){ veredito="tensão — mesma literatura, leituras opostas"; classe="v-tensao"; }
+    else if (comuns.length>=3 && divergem.length<=2){
+      if (temDecisivo){ veredito="padrão com falha — a única diferença está num eixo decisivo"; classe="v-tensao"; }
+      else { veredito="padrão — usar como bloco"; classe="v-padrao"; }
+    }
+    else if (comuns.length<=1 && convergem.length>=3){ veredito="convergência independente — mesmo lugar por caminhos separados"; classe="v-indep"; }
+    pares.push({ a:fa, b:fb, comuns, divergem, convergem, veredito, classe });
+  }
+  pares.sort((x,y) => y.comuns.length - x.comuns.length);
+
+  // 4. cruzamentos
+  function cruzar(ex, ey){
+    const vx=[], vy=[], celulas={};
+    fs.forEach(f => {
+      const xs = lista(f,ex).length ? lista(f,ex) : [campo(f,ex)||"—"];
+      const ys = lista(f,ey).length ? lista(f,ey) : [campo(f,ey)||"—"];
+      xs.forEach(x => { if(!vx.includes(x)) vx.push(x);
+        ys.forEach(y => { if(!vy.includes(y)) vy.push(y);
+          (celulas[x+"|"+y] = celulas[x+"|"+y] || []).push(f.id); }); });
+    });
+    return { ex, ey, vx:vx.sort(), vy:vy.sort(), celulas };
+  }
+  const cruzamentos = [cruzar("nivel","processo"), cruzar("metodo","nivel"), cruzar("processo","criterio")];
+
+  // 5. rede
+  const rede=[];
+  fs.forEach(f => {
+    const texto = (f.secoes||[]).map(s=>s.corpo).join("\n");
+    const vistos = new Set();
+    (texto.match(/\[\[([^\]]+)\]\]/g)||[]).forEach(m => {
+      const alvo = m.slice(2,-2).trim();
+      if (alvo === f.id || vistos.has(alvo)) return;
+      vistos.add(alvo);
+      rede.push({ de:f.id, para:alvo, existe: ids.includes(alvo) });
+    });
+  });
+  const orfas = fs.filter(f => !rede.some(l => l.de===f.id || l.para===f.id)).map(f=>f.id);
+
+  // 6. pendências
+  const pend = fs.map(f => ({ id:f.id, status:campo(f,"status"), campos:pendentes(f) }))
+                 .filter(x => x.campos.length);
+
+  return { panorama, refs, pares, cruzamentos, rede, orfas, pend, total:fs.length, ids };
+}
+
+/* bloco da análise que recolhe pelo título; o estado mora junto com o das fichas */
+function cardDobravel(titulo, id){
+  const card = el("div", estaRecolhida("an-"+id) ? "card recolhida" : "card");
+  const h = el("h3", null, titulo);
+  const tg = el("button","toggle", estaRecolhida("an-"+id) ? "+" : "−");
+  tg.type="button"; tg.title = estaRecolhida("an-"+id) ? "Expandir" : "Recolher";
+  tg.addEventListener("click", () => {
+    alternarRecolhida("an-"+id, ui.recolhidas);
+    card.classList.toggle("recolhida");
+    const fechada = card.classList.contains("recolhida");
+    tg.textContent = fechada ? "+" : "−";
+    tg.title = fechada ? "Expandir" : "Recolher";
+  });
+  h.appendChild(tg);
+  card.appendChild(h);
+  const corpo = el("div","card-corpo");
+  card.appendChild(corpo);
+  return { card, corpo };
+}
+
+function renderAnalise(){
+  const pane = $("#pane-analise");
+  pane.innerHTML = "";
+  const fs = fichasVisiveis();
+  if (fs.length < 2){
+    const d = el("div","empty-state");
+    d.appendChild(el("h3",null,"A análise precisa de pelo menos duas fichas"));
+    d.appendChild(el("p",null,"Afrouxe os filtros. Comparar é uma operação entre pares."));
+    return pane.appendChild(d);
+  }
+  const A = analise(fs);
+
+  pane.appendChild(el("h2","sec","Análise comparada"));
+  pane.appendChild(el("p","hint",
+    "Recalculada a cada edição, sobre as " + A.total + " fichas visíveis. Ela cruza o que você classificou — não lê os artigos. Vocabulário inconsistente produz falsas distinções."));
+
+  // panorama + espinha
+  const g = el("div","grid2");
+
+  const c1 = el("div");
+  c1.appendChild(el("h3",null,"Panorama por eixo"));
+  Object.keys(EIXOS).forEach(chave => {
+    const mapa = A.panorama[chave];
+    const vals = Object.keys(mapa).sort();
+    if (vals.length === 0) return;
+    c1.appendChild(el("h4",null,EIXOS[chave]));
+    const ul = el("ul","lista");
+    vals.forEach(v => {
+      const li = el("li");
+      li.innerHTML = "<code>"+esc(v)+"</code> ("+mapa[v].length+"): "+esc(mapa[v].join(", "));
+      if (mapa[v].length === 1) li.innerHTML += ' <span class="tag-iso">← isolada</span>';
+      if (mapa[v].length === A.total && A.total > 1) li.innerHTML += ' <span class="tag-uni">← unânime</span>';
+      ul.appendChild(li);
+    });
+    c1.appendChild(ul);
+  });
+  g.appendChild(c1);
+
+  const c2 = el("div");
+  c2.appendChild(el("h3",null,"Espinha bibliográfica"));
+  const entradas = Object.entries(A.refs).sort((a,b)=>b[1].length-a[1].length);
+  const compart = entradas.filter(e => e[1].length >= 2);
+  if (!compart.length){
+    c2.appendChild(el("p","hint","Nenhuma referência partilhada. Preencha o campo refs das fichas — é ele que revela parentesco intelectual."));
+  } else {
+    const ul = el("ul","lista");
+    compart.forEach(([ref, quem]) => {
+      const ausentes = A.ids.filter(i => !quem.includes(i));
+      const li = el("li");
+      li.innerHTML = "<b>"+esc(ref)+"</b> — "+quem.length+"/"+A.total+": "+esc(quem.join(", "));
+      if (ausentes.length && ausentes.length <= 2){
+        li.innerHTML += ' <span class="tag-iso">ausente em '+esc(ausentes.join(", "))+'</span>';
+      }
+      ul.appendChild(li);
+    });
+    c2.appendChild(ul);
+  }
+  const solo = entradas.filter(e => e[1].length === 1).map(e => e[0]);
+  if (solo.length){
+    c2.appendChild(el("h4",null,"De uma ficha só"));
+    const p = el("p"); p.style.fontSize="14px"; p.style.color="var(--ink-soft)";
+    p.innerHTML = solo.map(s => "<code>"+esc(s)+"</code>").join(" ");
+    c2.appendChild(p);
+  }
+  g.appendChild(c2);
+  pane.appendChild(g);
+
+  // pares
+  const parCard = cardDobravel("Pares — onde comparar", "pares");
+  const cp = parCard.corpo; parCard.card.style.marginTop="18px";
+  A.pares.forEach(p => {
+    const d = el("div","par");
+    d.innerHTML = "<b>"+esc(p.a.id)+" × "+esc(p.b.id)+"</b>";
+    const ul = el("ul","lista"); ul.style.marginTop="6px";
+    const li1 = el("li");
+    li1.innerHTML = p.comuns.length
+      ? "Referências em comum ("+p.comuns.length+"): " + p.comuns.map(r=>"<code>"+esc(r)+"</code>").join(" ")
+      : "Nenhuma referência em comum — se os temas se tocam, isso já é um achado.";
+    ul.appendChild(li1);
+    if (p.convergem.length) ul.appendChild(el("li",null,"Convergem em: "+p.convergem.join(", ")));
+    p.divergem.forEach(dv => {
+      const li = el("li");
+      li.innerHTML = "Divergem em <b>"+esc(dv.eixo)+"</b>: "+esc(dv.a)+" / "+esc(dv.b) +
+        (dv.decisivo ? ' <span class="tag-iso">eixo decisivo</span>' : "");
+      ul.appendChild(li);
+    });
+    d.appendChild(ul);
+    if (p.veredito){
+      const v = el("span","verdict "+p.classe, p.veredito);
+      d.appendChild(v);
+    }
+    cp.appendChild(d);
+  });
+  pane.appendChild(parCard.card);
+
+  // cruzamentos
+  const cruzCard = cardDobravel("Cruzamentos — a célula vazia é a lacuna", "cruzamentos");
+  const cc = cruzCard.corpo;
+  A.cruzamentos.forEach(c => {
+    cc.appendChild(el("h4",null,(EIXOS[c.ex]||c.ex)+" × "+(EIXOS[c.ey]||c.ey)));
+    const sc = el("div"); sc.style.overflowX="auto";
+    const t = el("table","cross");
+    const thead=el("thead"), trh=el("tr");
+    trh.appendChild(el("th",null,""));
+    c.vy.forEach(y => trh.appendChild(el("th",null,y)));
+    thead.appendChild(trh); t.appendChild(thead);
+    const tb=el("tbody");
+    c.vx.forEach(x => {
+      const tr=el("tr"); tr.appendChild(el("th",null,x));
+      c.vy.forEach(y => {
+        const quem = c.celulas[x+"|"+y];
+        tr.appendChild(quem ? el("td",null,quem.join(" ")) : el("td","empty","vazio"));
+      });
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb); sc.appendChild(t); cc.appendChild(sc);
+  });
+  pane.appendChild(cruzCard.card);
+
+  // rede + pendências
+  const g2 = el("div","grid2");
+  const r1 = el("div");
+  r1.appendChild(el("h3",null,"Rede de diálogo (D6)"));
+  if (!A.rede.length){
+    r1.appendChild(el("p","hint","Nenhum [[link]] entre fichas. O caderno ainda é uma pilha, não uma rede."));
+  } else {
+    const ul = el("ul","lista");
+    A.rede.forEach(l => {
+      const reciproco = A.rede.some(o => o.de===l.para && o.para===l.de);
+      const li = el("li", null, l.de + (reciproco ? " ↔ " : " → ") + l.para);
+      if (!l.existe) li.innerHTML += ' <span class="tag-iso">ficha inexistente</span>';
+      ul.appendChild(li);
+    });
+    r1.appendChild(ul);
+  }
+  if (A.orfas.length){
+    const p = el("p","hint"); p.style.marginTop="12px";
+    p.innerHTML = "<strong>Órfãs</strong> (ninguém cita, não citam ninguém): " + esc(A.orfas.join(", ")) + ". Preencher o D6 delas.";
+    r1.appendChild(p);
+  }
+  g2.appendChild(r1);
+
+  const r2 = el("div");
+  r2.appendChild(el("h3",null,"Pendências"));
+  if (!A.pend.length){
+    r2.appendChild(el("p","hint","Nenhuma. Todas as fichas visíveis estão completas."));
+  } else {
+    const ul = el("ul","lista");
+    A.pend.forEach(x => {
+      const li = el("li");
+      li.innerHTML = "<b>"+esc(x.id)+"</b> ("+esc(x.status)+") — faltam: "+esc(x.campos.join(", "));
+      ul.appendChild(li);
+    });
+    r2.appendChild(ul);
+  }
+  g2.appendChild(r2);
+  pane.appendChild(g2);
+}
+
+/* ================================================================ modais */
+
+function fecharModal(){ $("#modal").hidden = true; }
+function abrirModal(construir){
+  const box = $("#modalBox");
+  box.innerHTML = "";
+  construir(box);
+  $("#modal").hidden = false;
+}
+function aviso(texto, tipo){
+  const box = $("#modalBox");
+  if (!$("#modal").hidden && box){
+    const antigo = box.querySelector(".msg"); if (antigo) antigo.remove();
+    box.appendChild(el("div","msg "+(tipo||"ok"), texto));
+    return;
+  }
+  abrirModal(b => {
+    b.appendChild(el("h3",null, tipo==="err" ? "Não deu" : "Pronto"));
+    b.appendChild(el("p",null,texto));
+    const a = el("div","modal-actions");
+    const ok = el("button","btn solid","Fechar"); ok.addEventListener("click", fecharModal);
+    a.appendChild(ok); b.appendChild(a);
+  });
+}
+
+function abrirConfig(nota){
+  abrirModal(b => {
+    b.appendChild(el("h3",null,"Sincronia"));
+    b.appendChild(el("p",null,
+      "As fichas ficam num Gist secreto. O ID e o token moram só neste navegador, em chave separada dos dados — não entram no backup nem no repositório."));
+    if (nota) b.appendChild(el("div","msg warn",nota));
+
+    const f1 = el("div","field");
+    f1.appendChild(el("label",null,"ID do Gist"));
+    const i1 = el("input"); i1.value = cfg.gist; i1.placeholder="ex.: 7f3c9a1b2d4e…"; f1.appendChild(i1);
+    b.appendChild(f1);
+
+    const f2 = el("div","field");
+    f2.appendChild(el("label",null,"Token (fine-grained PAT, permissão Gists: read and write)"));
+    const i2 = el("input"); i2.type="password"; i2.value = cfg.token; i2.placeholder="github_pat_…"; f2.appendChild(i2);
+    b.appendChild(f2);
+
+    const a = el("div","modal-actions");
+    const sv = el("button","btn solid","Salvar");
+    sv.addEventListener("click", () => {
+      cfg.gist = i1.value.trim(); cfg.token = i2.value.trim();
+      salvarCfg(); pintarSync(); fecharModal();
+    });
+    const imp = el("button","btn quiet","Importar caderno.json");
+    imp.addEventListener("click", abrirImportar);
+    const exp = el("button","btn quiet","Baixar backup");
+    exp.addEventListener("click", baixarBackup);
+    const fe = el("button","btn quiet","Fechar"); fe.addEventListener("click", fecharModal);
+    a.appendChild(sv); a.appendChild(imp); a.appendChild(exp);
+    const sp = el("span","spacer"); a.appendChild(sp); a.appendChild(fe);
+    b.appendChild(a);
+  });
+}
+
+function abrirImportar(){
+  abrirModal(b => {
+    b.appendChild(el("h3",null,"Importar"));
+    b.appendChild(el("p",null,
+      "Aceita o caderno.json inteiro (substitui tudo) ou uma ficha avulsa em JSON (acrescenta, ou atualiza se o id já existir). É por aqui que entram as pré-fichas geradas fora do navegador."));
+
+    const arqf = el("div","field");
+    arqf.appendChild(el("label",null,"Arquivo"));
+    const inp = el("input"); inp.type="file"; inp.accept=".json,application/json";
+    arqf.appendChild(inp); b.appendChild(arqf);
+
+    const ta = el("textarea"); ta.placeholder = "…ou cole o JSON aqui";
+    b.appendChild(ta);
+
+    inp.addEventListener("change", () => {
+      const file = inp.files && inp.files[0]; if (!file) return;
+      const fr = new FileReader();
+      fr.onload = () => { ta.value = fr.result; };
+      fr.readAsText(file, "utf-8");
+    });
+
+    const a = el("div","modal-actions");
+    const ok = el("button","btn solid","Importar");
+    ok.addEventListener("click", () => {
+      let dados;
+      try { dados = JSON.parse(ta.value); }
+      catch(e){ return aviso("JSON inválido: " + e.message, "err"); }
+      try { aplicarImport(dados); }
+      catch(e){ return aviso(e.message, "err"); }
+    });
+    const fe = el("button","btn quiet","Cancelar"); fe.addEventListener("click", fecharModal);
+    a.appendChild(ok); const sp=el("span","spacer"); a.appendChild(sp); a.appendChild(fe);
+    b.appendChild(a);
+  });
+}
+
+function aplicarImport(dados){
+  if (Array.isArray(dados.fichas)){
+    if (estado.fichas.length && !confirm("Isso substitui as " + estado.fichas.length + " fichas locais. Continuar?")) return;
+    // preserva os dossiês de país se o arquivo importado não os trouxer
+    const paisesAntigos = estado.paises;
+    estado = { schema:1, savedAt:dados.savedAt||null, fichas:dados.fichas,
+               paises: Array.isArray(dados.paises) && dados.paises.length ? dados.paises : paisesAntigos };
+    normalizar();
+    sujo = true; salvarLocal(); render();
+    return aviso("Importadas " + estado.fichas.length + " fichas. Clique em Enviar para gravar no gist.", "ok");
+  }
+  const ficha = Array.isArray(dados) ? null : dados;
+  if (!ficha || !ficha.id) throw new Error("Não reconheci o formato. Esperava um objeto com fichas[] ou uma ficha com id.");
+  if (!Array.isArray(ficha.secoes)) ficha.secoes = [];
+  const i = estado.fichas.findIndex(x => x.id === ficha.id);
+  if (i >= 0){
+    if (!confirm("Já existe uma ficha " + ficha.id + ". Substituir?")) return;
+    estado.fichas[i] = ficha;
+  } else {
+    estado.fichas.push(ficha);
+  }
+  sujo = true; salvarLocal(); render();
+  aviso("Ficha " + ficha.id + " no caderno. Clique em Enviar para gravar no gist.", "ok");
+}
+
+function baixarBackup(){
+  const blob = new Blob([JSON.stringify(estado, null, 2)], {type:"application/json"});
+  const a = el("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "caderno-" + new Date().toISOString().slice(0,10) + ".json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function novaFicha(){
+  abrirModal(b => {
+    b.appendChild(el("h3",null,"Ficha nova"));
+    b.appendChild(el("p",null,"Cria o esqueleto com os 22 campos. O bloco D nasce marcado como pendente."));
+    const f1 = el("div","field");
+    f1.appendChild(el("label",null,"id — formato autorAAAA, é a chave dos [[links]]"));
+    const i1 = el("input"); i1.placeholder="ex.: mcdonald2013"; f1.appendChild(i1); b.appendChild(f1);
+    const f2 = el("div","field");
+    f2.appendChild(el("label",null,"autor")); const i2 = el("input"); f2.appendChild(i2); b.appendChild(f2);
+    const f3 = el("div","field");
+    f3.appendChild(el("label",null,"ano")); const i3 = el("input"); f3.appendChild(i3); b.appendChild(f3);
+    const f4 = el("div","field");
+    f4.appendChild(el("label",null,"título")); const i4 = el("input"); f4.appendChild(i4); b.appendChild(f4);
+
+    const a = el("div","modal-actions");
+    const ok = el("button","btn solid","Criar");
+    ok.addEventListener("click", () => {
+      const id = i1.value.trim();
+      if (!id) return aviso("O id é obrigatório — sem ele os [[links]] não funcionam.", "err");
+      if (estado.fichas.some(x => x.id === id)) return aviso("Já existe uma ficha com esse id.", "err");
+      const ficha = {
+        id,
+        meta:{ id, autor:i2.value.trim(), ano:i3.value.trim(), titulo:i4.value.trim(),
+               status:"pre-ficha", regiao:[], refs:[], tags:[], filiacao:[] },
+        secoes: SECOES_PADRAO.map(([codigo,titulo]) => ({
+          codigo, titulo,
+          corpo: codigo === "A1" ? "" : "> A preencher após a leitura."
+        }))
+      };
+      estado.fichas.push(ficha);
+      sujo = true; editando = id; salvarLocal(); fecharModal(); irPara("fichas"); render();
+    });
+    const fe = el("button","btn quiet","Cancelar"); fe.addEventListener("click", fecharModal);
+    a.appendChild(ok); const sp=el("span","spacer"); a.appendChild(sp); a.appendChild(fe);
+    b.appendChild(a);
+  });
+}
+
+/* =============================================================== render */
+
+const ABAS = ["matriz","fichas","paises","analise"];
+
+function irPara(nome){
+  aba = nome;
+  ABAS.forEach(n => {
+    $("#tab-"+n).setAttribute("aria-selected", n===nome ? "true" : "false");
+    $("#pane-"+n).hidden = (n !== nome);
+  });
+  renderConteudo();
+}
+function renderConteudo(){
+  if (aba === "matriz") renderMatriz();
+  else if (aba === "fichas") renderFichas();
+  else if (aba === "paises") renderPaises();
+  else renderAnalise();
+}
+function render(){
+  // o tema da tese também é conteúdo: sai do Gist, não fica no HTML público
+  $("#subtitulo").textContent = estado.titulo || (estado.fichas.length ? "" : "sem dados carregados");
+  renderFiltros(); renderConteudo(); pintarSync();
+}
+
+/* ================================================================ start */
+
+document.addEventListener("click", e => {
+  const jump = e.target.closest("[data-jump]");
+  if (jump){
+    e.preventDefault();
+    const id = jump.getAttribute("data-jump");
+    if (!estado.fichas.some(f => f.id === id)) return aviso("Ainda não existe uma ficha " + id + ".", "warn");
+    irPara("fichas");
+    setTimeout(() => { const n = document.getElementById("f-"+id); if (n) n.scrollIntoView({block:"start"}); }, 30);
+  }
+  if (e.target === $("#modal")) fecharModal();
+});
+document.addEventListener("keydown", e => {
+  if (e.key !== "Escape") return;
+  if (!$("#indice").hidden) return fecharIndice();
+  fecharModal();
+});
+
+ABAS.forEach(n => $("#tab-"+n).addEventListener("click", ()=>irPara(n)));
+$("#btnIndice").addEventListener("click", abrirIndice);
+$("#backdrop").addEventListener("click", fecharIndice);
+$("#btnBuscar").addEventListener("click", ()=>buscar());
+$("#btnEnviar").addEventListener("click", enviar);
+$("#btnNova").addEventListener("click", novaFicha);
+$("#btnCfg").addEventListener("click", ()=>abrirConfig());
+window.addEventListener("beforeunload", e => { if (sujo){ e.preventDefault(); e.returnValue = ""; } });
+
+carregarLocal();
+render();
+if (cfg.gist && cfg.token && !estado.fichas.length) buscar({silencioso:true});
+</script>
+</body>
+</html>

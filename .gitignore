@@ -1,0 +1,6 @@
+# As fichas NUNCA entram neste repositório — ele é público.
+# O conteúdo vive num Gist secreto, cujo ID fica só no navegador.
+*.json
+!package.json
+_teste*
+backup*
