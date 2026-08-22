@@ -236,6 +236,44 @@ button.toggle:hover{background:var(--surface-2);color:var(--accent);border-color
 .fichas-do-pais button.fraca:hover{background:var(--surface-2)}
 .chip.foco{border-color:var(--accent);font-weight:600}
 .chip.foco::before{content:"★ ";color:var(--accent)}
+
+/* ---- leitura em tela cheia ---- */
+.leitura{position:fixed;inset:0;z-index:70;background:var(--paper);overflow-y:auto;overscroll-behavior:contain}
+.leitura[hidden]{display:none}
+.leitura-top{position:sticky;top:0;z-index:2;background:var(--surface);border-bottom:1px solid var(--rule-hard)}
+.leitura-top .linha{max-width:900px;margin:0 auto;padding:10px 22px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.leitura-top .quem{flex:1;min-width:0;font-family:var(--mono);font-size:11px;color:var(--ink-faint);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.leitura-top .quem b{color:var(--accent);font-weight:400}
+.leitura-salto{max-width:900px;margin:0 auto;padding:0 22px 10px;display:flex;flex-wrap:wrap;gap:4px}
+.leitura-salto button{font-family:var(--mono);font-size:10px;padding:3px 7px;border:1px solid var(--rule);
+  background:transparent;color:var(--ink-faint);cursor:pointer;border-radius:2px}
+.leitura-salto button:hover{border-color:var(--accent);color:var(--accent)}
+.leitura-salto button.voz{color:var(--pen);border-color:var(--pen-bg)}
+.leitura-corpo{max-width:900px;margin:0 auto;padding:30px 22px 140px}
+.leitura-corpo>.cabeca{border-bottom:2px solid var(--ink);padding-bottom:20px;margin-bottom:8px}
+.leitura-corpo>.cabeca h2{font-size:clamp(22px,3.4vw,30px);line-height:1.2;font-weight:600;
+  letter-spacing:-.015em;text-wrap:balance;margin:8px 0 12px}
+.leitura-corpo>.cabeca .ref{font-size:15px;color:var(--ink-soft);max-width:78ch}
+.leitura-sec{padding:24px 0;border-bottom:1px solid var(--rule);scroll-margin-top:96px}
+.leitura-sec:last-child{border-bottom:none}
+.leitura-sec>.lbl{font-family:var(--mono);font-size:10px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-faint);margin-bottom:10px}
+.leitura-sec>.lbl b{color:var(--accent);font-weight:400;margin-right:8px}
+.leitura-sec.voz>.lbl b{color:var(--pen)}
+/* a faixa da minha voz só sangra para fora quando há folga; em janela
+   estreita, ao lado do PDF, ela ficaria colada na borda */
+.leitura-sec.voz{border-left:3px solid var(--pen-bg);padding-left:18px;margin-left:-21px}
+@media(max-width:960px){.leitura-sec.voz{margin-left:0}}
+.leitura-sec>.txt{font-size:var(--corpo,17.5px);line-height:1.72;max-width:74ch}
+.leitura-sec>.txt p+p{margin-top:12px}
+.leitura-sec>.txt ul{list-style:none;display:grid;gap:10px;margin-top:6px}
+.leitura-sec>.txt li{padding-left:18px;position:relative}
+.leitura-sec>.txt li::before{content:"—";position:absolute;left:0;color:var(--ink-faint)}
+.leitura-sec>.txt textarea{width:100%;min-height:120px;background:var(--surface);border:1px solid var(--rule-hard);
+  padding:11px 13px;border-radius:2px;font-family:var(--mono);font-size:13.5px;line-height:1.65;resize:vertical}
+.leitura-vazia{color:var(--ink-faint);font-style:italic}
+@media(max-width:620px){.leitura-sec.voz{padding-left:14px}.leitura-corpo{padding:22px 16px 120px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -276,6 +314,7 @@ button.toggle:hover{background:var(--surface-2);color:var(--accent);border-color
 
 <div class="backdrop" id="backdrop" hidden></div>
 <aside class="indice" id="indice" hidden aria-label="Índice de fichas"></aside>
+<div class="leitura" id="leitura" hidden role="dialog" aria-label="Leitura em tela cheia"></div>
 
 <div class="modal" id="modal" hidden>
   <div class="modal-box" id="modalBox"></div>
@@ -340,6 +379,8 @@ let aba = "matriz";
 let editando = null;      // id da ficha em edição
 let editandoPais = null;
 let sujo = false;         // há mudanças locais não enviadas
+let leitura = null;       // id da ficha aberta em tela cheia
+let leituraEdit = false;  // tela cheia em modo de anotação
 
 /* =============================================================== helpers */
 
@@ -765,7 +806,8 @@ function abrirIndice(){
       b.appendChild(nome);
       const st = campo(f,"status") || "—";
       b.appendChild(el("span","st " + st, st));
-      b.addEventListener("click", () => { fecharIndice(); irParaFicha(f.id); });
+      // do índice direto para a leitura: é o caminho de quem vai ler o artigo
+      b.addEventListener("click", () => { fecharIndice(); abrirLeitura(f.id); });
       corpo.appendChild(b);
     });
   });
@@ -819,6 +861,11 @@ function cardLeitura(f){
   resumo.innerHTML = md(secao(f,"B2") || secao(f,"B1") || "");
   h.appendChild(resumo);
   hd.appendChild(h);
+
+  const bLer = el("button","btn quiet","Ler");
+  bLer.title = "Abrir em tela cheia, para ler ao lado do artigo";
+  bLer.addEventListener("click", () => abrirLeitura(f.id));
+  hd.appendChild(bLer);
 
   const bt = el("button","btn quiet","Editar");
   bt.addEventListener("click", () => { editando = f.id; renderConteudo();
@@ -919,6 +966,156 @@ function cardEdicao(f){
   });
 
   return art;
+}
+
+/* ==================================================== leitura em tela cheia */
+/* Pensada para ficar ao lado do PDF do artigo: uma ficha por vez, sem barra,
+   sem filtro, sem matriz. Setas trocam de ficha dentro do que os filtros
+   deixaram visível; Esc sai. */
+
+function abrirLeitura(id){
+  leitura = id; leituraEdit = false;
+  document.body.style.overflow = "hidden";
+  renderLeitura();
+  $("#leitura").hidden = false;
+  $("#leitura").scrollTop = 0;
+}
+function fecharLeitura(){
+  leitura = null; leituraEdit = false;
+  $("#leitura").hidden = true;
+  document.body.style.overflow = "";
+  if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(()=>{});
+  renderConteudo();
+}
+function navegarLeitura(passo){
+  const fs = fichasVisiveis();
+  const i = fs.findIndex(f => f.id === leitura);
+  if (i < 0) return;
+  const j = i + passo;
+  if (j < 0 || j >= fs.length) return;
+  // o modo anotar acompanha: numa sessão de leitura você anota várias fichas
+  leitura = fs[j].id;
+  renderLeitura();
+  $("#leitura").scrollTop = 0;
+}
+
+function renderLeitura(){
+  const cx = $("#leitura");
+  cx.innerHTML = "";
+  const f = estado.fichas.find(x => x.id === leitura);
+  if (!f) return fecharLeitura();
+
+  const fs = fichasVisiveis();
+  const pos = fs.findIndex(x => x.id === leitura);
+  cx.style.setProperty("--corpo", (ui.corpo || 17.5) + "px");
+
+  /* --- barra --- */
+  const top = el("div","leitura-top");
+  const linha = el("div","linha");
+
+  const bAnt = el("button","toggle","‹"); bAnt.title = "Ficha anterior (←)";
+  bAnt.disabled = pos <= 0;
+  bAnt.addEventListener("click", () => navegarLeitura(-1));
+  const bProx = el("button","toggle","›"); bProx.title = "Próxima ficha (→)";
+  bProx.disabled = pos < 0 || pos >= fs.length - 1;
+  bProx.addEventListener("click", () => navegarLeitura(1));
+  linha.appendChild(bAnt); linha.appendChild(bProx);
+
+  const quem = el("span","quem");
+  quem.innerHTML = (pos >= 0 ? "<b>" + (pos+1) + " de " + fs.length + "</b> · " : "") +
+                   esc(f.id) + " · " + esc(campo(f,"status") || "sem status");
+  linha.appendChild(quem);
+
+  const bMenor = el("button","toggle","A−"); bMenor.title = "Diminuir o texto";
+  bMenor.addEventListener("click", () => {
+    ui.corpo = Math.max(13, (ui.corpo || 17.5) - 1); salvarUi();
+    cx.style.setProperty("--corpo", ui.corpo + "px");
+  });
+  const bMaior = el("button","toggle","A+"); bMaior.title = "Aumentar o texto";
+  bMaior.addEventListener("click", () => {
+    ui.corpo = Math.min(26, (ui.corpo || 17.5) + 1); salvarUi();
+    cx.style.setProperty("--corpo", ui.corpo + "px");
+  });
+  linha.appendChild(bMenor); linha.appendChild(bMaior);
+
+  const bAnotar = el("button", leituraEdit ? "btn solid" : "btn quiet", leituraEdit ? "Lendo" : "Anotar");
+  bAnotar.title = leituraEdit ? "Voltar a só ler" : "Escrever nos campos sem sair da tela cheia";
+  bAnotar.addEventListener("click", () => { leituraEdit = !leituraEdit; renderLeitura(); });
+  linha.appendChild(bAnotar);
+
+  const bTela = el("button","toggle","⛶"); bTela.title = "Tela cheia do navegador";
+  bTela.addEventListener("click", () => {
+    if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+    else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{});
+  });
+  linha.appendChild(bTela);
+
+  const bSair = el("button","toggle","×"); bSair.title = "Sair (Esc)";
+  bSair.addEventListener("click", fecharLeitura);
+  linha.appendChild(bSair);
+  top.appendChild(linha);
+
+  /* --- salto por seção --- */
+  const salto = el("div","leitura-salto");
+  (f.secoes||[]).forEach(s => {
+    if (s.codigo === "A1") return;
+    const b = el("button", MINHA_VOZ.includes(s.codigo) ? "voz" : null, s.codigo);
+    b.title = s.titulo || "";
+    b.addEventListener("click", () => {
+      const alvo = document.getElementById("ls-" + s.codigo);
+      if (alvo) alvo.scrollIntoView({block:"start", behavior:"smooth"});
+    });
+    salto.appendChild(b);
+  });
+  top.appendChild(salto);
+  cx.appendChild(top);
+
+  /* --- corpo --- */
+  const corpo = el("div","leitura-corpo");
+  const cab = el("div","cabeca");
+  cab.appendChild(el("span","eyebrow", rotulo(f)));
+  cab.appendChild(el("h2", null, campo(f,"titulo") || f.id));
+  const ref = el("div","ref"); ref.innerHTML = md(secao(f,"A1")); cab.appendChild(ref);
+
+  const bg = el("div","badges");
+  const foco = paisesFoco();
+  lista(f,"regiao").forEach(r => bg.appendChild(el("span", foco.includes(r) ? "badge key" : "badge", r)));
+  if (campo(f,"processo")) bg.appendChild(el("span","badge", campo(f,"processo")));
+  if (campo(f,"criterio")) bg.appendChild(el("span","badge", "critério: " + campo(f,"criterio")));
+  const pend = pendentes(f);
+  if (pend.length) bg.appendChild(el("span","badge pre", pend.length + " campos a preencher"));
+  cab.appendChild(bg);
+  corpo.appendChild(cab);
+
+  (f.secoes||[]).forEach((s, i) => {
+    if (s.codigo === "A1") return;
+    const sec = el("div", MINHA_VOZ.includes(s.codigo) ? "leitura-sec voz" : "leitura-sec");
+    sec.id = "ls-" + s.codigo;
+    const lbl = el("div","lbl");
+    lbl.appendChild(el("b",null,s.codigo));
+    lbl.appendChild(document.createTextNode(s.titulo || ""));
+    sec.appendChild(lbl);
+
+    const txt = el("div","txt");
+    if (leituraEdit){
+      const ta = el("textarea");
+      ta.value = s.corpo || "";
+      ta.placeholder = "…";
+      ta.rows = Math.min(26, Math.max(4, (s.corpo||"").split("\n").length + 2));
+      // grava direto: em leitura ao lado do PDF, botão de salvar é botão esquecido
+      ta.addEventListener("input", e => { f.secoes[i].corpo = e.target.value; sujo = true; });
+      ta.addEventListener("blur", () => { salvarLocal(); });
+      txt.appendChild(ta);
+    } else if ((s.corpo||"").trim()){
+      txt.innerHTML = md(s.corpo);
+    } else {
+      txt.appendChild(el("p","leitura-vazia","vazio"));
+    }
+    sec.appendChild(txt);
+    corpo.appendChild(sec);
+  });
+
+  cx.appendChild(corpo);
 }
 
 /* ================================================================ países */
@@ -1592,9 +1789,17 @@ document.addEventListener("click", e => {
   if (e.target === $("#modal")) fecharModal();
 });
 document.addEventListener("keydown", e => {
-  if (e.key !== "Escape") return;
-  if (!$("#indice").hidden) return fecharIndice();
-  fecharModal();
+  if (e.key === "Escape"){
+    if (!$("#leitura").hidden) return fecharLeitura();
+    if (!$("#indice").hidden) return fecharIndice();
+    return fecharModal();
+  }
+  if ($("#leitura").hidden) return;
+  // dentro de um textarea as setas pertencem ao cursor, não à navegação
+  const digitando = /^(TEXTAREA|INPUT)$/.test((e.target.tagName || ""));
+  if (digitando) return;
+  if (e.key === "ArrowLeft")  { e.preventDefault(); navegarLeitura(-1); }
+  if (e.key === "ArrowRight") { e.preventDefault(); navegarLeitura(1); }
 });
 
 ABAS.forEach(n => $("#tab-"+n).addEventListener("click", ()=>irPara(n)));
