@@ -395,7 +395,9 @@ const CAMPOS_AUTOR = [
   ["sede",      "país da instituição"],
   ["afiliacao", "filiação institucional"],
   ["area",      "área e formação"],
-  ["link",      "perfil ou ORCID"]
+  ["email",     "e-mail"],
+  ["orcid",     "ORCID ou Lattes"],
+  ["link",      "perfil"]
 ];
 const FOTO_LADO = 220;      // px do lado do recorte quadrado
 const FOTO_ALERTA = 90000;  // acima disso o dataURI começa a pesar no Gist
@@ -1053,7 +1055,20 @@ function cardEdicao(f){
    ficha.meta.autores. O campo `autor` continua sendo só o texto de exibição. */
 
 function autorVazio(id, nome){
-  return { id, nome:nome||id, pais:"", sede:"", afiliacao:"", area:"", link:"", foto:"", obs:"" };
+  return { id, nome:nome||id, pais:"", sede:"", afiliacao:"", area:"",
+           email:"", orcid:"", link:"", foto:"", obs:"" };
+}
+
+/* ORCID e Lattes têm ambos 16 dígitos, então o que distingue é a convenção
+   de escrita: ORCID vem hifenizado em grupos de quatro, Lattes vem em bloco.
+   URL colada inteira é respeitada como está. */
+function urlIdentificador(v){
+  const t = (v||"").trim();
+  if (!t) return null;
+  if (/^https?:\/\//i.test(t)) return t;
+  if (/^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/i.test(t)) return "https://orcid.org/" + t.toUpperCase();
+  if (/^\d{16}$/.test(t)) return "http://lattes.cnpq.br/" + t;
+  return null;
 }
 
 function fichasDoAutor(a){
@@ -1214,10 +1229,19 @@ function cardAutor(a){
     const dd = el("dd");
     const v = (a[k]||"").trim();
     if (!v) dd.appendChild(el("span","falta","a pesquisar"));
-    else if (k === "link"){
+    else if (k === "email"){
       const lk = el("a",null,v);
-      lk.href = v; lk.target = "_blank"; lk.rel = "noopener noreferrer";
+      lk.href = "mailto:" + v;
       dd.appendChild(lk);
+    } else if (k === "orcid" || k === "link"){
+      const href = k === "link"
+        ? (/^https?:\/\//i.test(v) ? v : null)
+        : urlIdentificador(v);
+      if (href){
+        const lk = el("a",null,v);
+        lk.href = href; lk.target = "_blank"; lk.rel = "noopener noreferrer";
+        dd.appendChild(lk);
+      } else dd.textContent = v;
     } else dd.textContent = v;
     linha.appendChild(dd);
     campos.appendChild(linha);
@@ -1314,7 +1338,9 @@ function cardAutorEdicao(a){
     const inp = el("input");
     inp.value = rascunho[k] || "";
     if (k === "pais" || k === "sede") inp.placeholder = "ex.: Brasil";
-    if (k === "link") inp.placeholder = "https://";
+    if (k === "link")  inp.placeholder = "https://";
+    if (k === "email") { inp.type = "email"; inp.placeholder = "nome@instituicao.edu"; }
+    if (k === "orcid") inp.placeholder = "0000-0002-1825-0097 ou 16 dígitos do Lattes";
     inp.addEventListener("input", e => { rascunho[k] = e.target.value; });
     fd.appendChild(inp); grid.appendChild(fd);
   });
