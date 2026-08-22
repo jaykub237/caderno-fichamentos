@@ -607,11 +607,21 @@ async function enviar(){
     // conflito por timestamp: o remoto mudou desde a última vez que vi?
     let remoto = null;
     try { remoto = await gistGet(); } catch(e){ /* gist novo ou vazio */ }
-    if (remoto && remoto.savedAt && cfg.seen && remoto.savedAt !== cfg.seen){
-      const ok = confirm(
-        "O gist foi alterado por outra sessão em " + remoto.savedAt.slice(0,16).replace("T"," ") +
-        ".\nEnviar agora sobrescreve aquela versão.\n\nSobrescrever?");
-      if (!ok) return;
+    if (remoto && remoto.savedAt && remoto.savedAt !== cfg.seen){
+      // sem `seen` o navegador nunca viu o gist: enviar aqui apaga tudo em
+      // silêncio, que é justamente o caso mais perigoso
+      const nuncaViu = !cfg.seen;
+      const perde = [];
+      if ((remoto.fichas||[]).length  > (estado.fichas||[]).length)  perde.push("fichas");
+      if ((remoto.paises||[]).length  > (estado.paises||[]).length)  perde.push("dossiês de país");
+      if ((remoto.autores||[]).length > (estado.autores||[]).length) perde.push("autores");
+
+      let msg = nuncaViu
+        ? "Este navegador nunca buscou o gist, e o gist já tem conteúdo.\n"
+        : "O gist foi alterado em " + remoto.savedAt.slice(0,16).replace("T"," ") + ".\n";
+      if (perde.length) msg += "\nO gist tem MAIS " + perde.join(", ") + " do que esta tela.\n";
+      msg += "\nEnviar agora sobrescreve o que está lá.\nSe quiser trazer o gist para cá, cancele e clique em Buscar.\n\nSobrescrever mesmo assim?";
+      if (!confirm(msg)) return;
     }
     estado.savedAt = agora();
     estado.schema = 1;
@@ -763,11 +773,14 @@ function vazio(){
   const d = el("div","empty-state");
   if (!estado.fichas.length){
     d.appendChild(el("h3",null,"Caderno vazio"));
-    d.appendChild(el("p",null,"Use Config para ligar o Gist e Buscar, ou importe o caderno.json gerado pelo script local."));
-    const b = el("button","btn solid","Importar caderno.json");
+    d.appendChild(el("p",null,"Puxe do Gist, ou importe o caderno.json gerado pelo script local. Se o Gist ainda não está ligado, comece pelo Config."));
+    const acoes = el("div","modal-actions");
+    acoes.style.justifyContent = "center";
+    acoes.appendChild(botaoBuscar());
+    const b = el("button","btn quiet","Importar caderno.json");
     b.addEventListener("click", abrirImportar);
-    d.appendChild(el("div",null," "));
-    d.appendChild(b);
+    acoes.appendChild(b);
+    d.appendChild(acoes);
   } else {
     d.appendChild(el("h3",null,"Nenhuma ficha passa nos filtros"));
     d.appendChild(el("p",null,"Afrouxe os filtros ou limpe a busca."));
@@ -876,6 +889,14 @@ function abrirIndice(){
   $("#backdrop").hidden = false;
 }
 function fecharIndice(){ $("#indice").hidden = true; $("#backdrop").hidden = true; }
+
+/* Estado vazio de qualquer aba: o motivo quase sempre é cópia local
+   desatualizada, então o botão de buscar fica ali, não escondido no topo. */
+function botaoBuscar(rotulo){
+  const b = el("button","btn solid", rotulo || "Buscar do Gist");
+  b.addEventListener("click", () => buscar());
+  return b;
+}
 
 /* O rótulo bonito de uma região vem do dossiê correspondente, que está no
    Gist. Sem dossiê, mostra o próprio slug — nomes de país não ficam neste
@@ -1100,11 +1121,16 @@ function renderAutores(){
 
   if (!estado.autores.length){
     const d = el("div","empty-state");
-    d.appendChild(el("h3",null,"Nenhum autor carregado"));
-    d.appendChild(el("p",null,"As fichas de autor vêm do Gist, como o resto. Clique em Buscar, ou crie uma em branco."));
-    const b = el("button","btn solid","+ Autor");
+    d.appendChild(el("h3",null,"Nenhum autor nesta cópia local"));
+    d.appendChild(el("p",null,
+      "Os autores moram no Gist, como as fichas e os dossiês. Se você já os tem lá, o que falta é puxar: esta tela guarda uma cópia e ela não se atualiza sozinha."));
+    const acoes = el("div","modal-actions");
+    acoes.style.justifyContent = "center";
+    acoes.appendChild(botaoBuscar());
+    const b = el("button","btn quiet","+ Autor em branco");
     b.addEventListener("click", novoAutor);
-    d.appendChild(el("div",null," ")); d.appendChild(b);
+    acoes.appendChild(b);
+    d.appendChild(acoes);
     return pane.appendChild(d);
   }
 
@@ -1571,11 +1597,16 @@ function renderPaises(){
 
   if (!estado.paises.length){
     const d = el("div","empty-state");
-    d.appendChild(el("h3",null,"Nenhum dossiê carregado"));
-    d.appendChild(el("p",null,"Os dossiês de país vêm do Gist, como as fichas. Clique em Buscar, ou crie um em branco."));
-    const b = el("button","btn solid","+ Dossiê");
+    d.appendChild(el("h3",null,"Nenhum dossiê nesta cópia local"));
+    d.appendChild(el("p",null,
+      "Os dossiês moram no Gist, como as fichas. Se você já os tem lá, o que falta é puxar: esta tela guarda uma cópia e ela não se atualiza sozinha."));
+    const acoes = el("div","modal-actions");
+    acoes.style.justifyContent = "center";
+    acoes.appendChild(botaoBuscar());
+    const b = el("button","btn quiet","+ Dossiê em branco");
     b.addEventListener("click", novoDossie);
-    d.appendChild(el("div",null," ")); d.appendChild(b);
+    acoes.appendChild(b);
+    d.appendChild(acoes);
     return pane.appendChild(d);
   }
 
