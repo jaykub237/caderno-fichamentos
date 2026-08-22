@@ -277,6 +277,21 @@ button.toggle:hover{background:var(--surface-2);color:var(--accent);border-color
   color:var(--ink-soft);margin-bottom:18px}
 .resumo-autores b{color:var(--accent);font-weight:400}
 
+/* ---- seletor por clique ---- */
+.picker{display:grid;gap:2px;max-height:230px;overflow-y:auto;border:1px solid var(--rule-hard);
+  background:var(--surface);padding:6px;border-radius:2px}
+.picker label{display:flex;gap:9px;align-items:flex-start;padding:7px 9px;cursor:pointer;border-radius:2px;line-height:1.4}
+.picker label:hover{background:var(--accent-bg)}
+.picker input{margin-top:3px;flex-shrink:0;width:15px;height:15px;accent-color:var(--accent)}
+.picker .rot{font-size:14px;min-width:0}
+.picker .rot small{display:block;font-family:var(--mono);font-size:10px;color:var(--ink-faint);margin-top:2px;
+  overflow:hidden;text-overflow:ellipsis}
+.picker-vazio{font-family:var(--mono);font-size:11px;color:var(--ink-faint);padding:10px}
+.alerta-vinculo{background:var(--pen-bg);border-left:3px solid var(--pen);padding:12px 16px;margin-bottom:18px;
+  font-size:14px;line-height:1.5}
+.alerta-vinculo b{color:var(--pen)}
+.alerta-vinculo button{margin-top:9px}
+
 /* ---- leitura em tela cheia ---- */
 .leitura{position:fixed;inset:0;z-index:70;background:var(--paper);overflow-y:auto;overscroll-behavior:contain}
 .leitura[hidden]{display:none}
@@ -982,6 +997,44 @@ function cardLeitura(f){
   return art;
 }
 
+/* Trocar o id à mão quebra em silêncio: os [[links]] das outras fichas e a
+   lista de recolhidas continuam apontando para o nome velho. Aqui a troca
+   arrasta tudo junto. */
+function renomearFicha(f){
+  const atual = f.id;
+  const bruto = prompt("Novo id para esta ficha.\nOs [[links]] das outras fichas e os vínculos com autores são reescritos junto.", atual);
+  if (bruto === null) return;
+  const novo = paraSlug(bruto);
+  if (!novo) return aviso("Id inválido.", "err");
+  if (novo === atual) return;
+  if (estado.fichas.some(x => x.id === novo)) return aviso("Já existe uma ficha com o id " + novo + ".", "err");
+
+  let links = 0;
+  const trocarLinks = objs => objs.forEach(o => (o.secoes||[]).forEach(s => {
+    if (!s.corpo) return;
+    const antes = s.corpo;
+    s.corpo = s.corpo.split("[[" + atual + "]]").join("[[" + novo + "]]");
+    if (s.corpo !== antes) links++;
+  }));
+  trocarLinks(estado.fichas);
+  trocarLinks(estado.paises);
+
+  const alvo = estado.fichas.find(x => x.id === atual);
+  alvo.id = novo;
+  alvo.meta = alvo.meta || {};
+  alvo.meta.id = novo;
+
+  ["recolhidas"].forEach(k => {
+    const i = ui[k].indexOf(atual);
+    if (i >= 0) ui[k][i] = novo;
+  });
+  if (leitura === atual) leitura = novo;
+  if (editando === atual) editando = novo;
+
+  salvarUi(); sujo = true; salvarLocal(); render();
+  aviso("Renomeada para " + novo + ". " + (links ? links + " seção(ões) com [[links]] atualizadas." : "Nenhum [[link]] apontava para ela."), "ok");
+}
+
 function cardEdicao(f){
   const art = el("article","ficha"); art.id = "f-" + f.id;
   const rascunho = JSON.parse(JSON.stringify(f));
@@ -989,8 +1042,11 @@ function cardEdicao(f){
   const bar = el("div","edit-bar");
   const salvar = el("button","btn solid","Salvar");
   const cancelar = el("button","btn quiet","Cancelar");
+  const renomear = el("button","btn quiet","Renomear id");
+  renomear.title = "Troca o id e arruma sozinho os [[links]] e os vínculos com autores";
+  renomear.addEventListener("click", () => renomearFicha(f));
   const apagar = el("button","btn danger","Apagar ficha");
-  bar.appendChild(salvar); bar.appendChild(cancelar); bar.appendChild(apagar);
+  bar.appendChild(salvar); bar.appendChild(cancelar); bar.appendChild(renomear); bar.appendChild(apagar);
   bar.appendChild(el("span","note","editando " + f.id + " — nada sai daqui até você clicar em Enviar"));
   art.appendChild(bar);
 
@@ -1004,12 +1060,16 @@ function cardEdicao(f){
 
   const grid = el("div","edit-grid");
   META_ORDEM.forEach(k => {
+    if (k === "autores") return;   // vira seletor logo abaixo
     const fd = el("div","field");
     const lb = el("label", null, k + (LISTAS.includes(k) ? "  (vírgulas)" : ""));
     const inp = el("input");
     inp.value = campo(rascunho, k);
     if (vocab()[k]) inp.setAttribute("list","dl-"+k);
-    if (k === "id") inp.disabled = true;
+    if (k === "id"){
+      inp.disabled = true;
+      lb.textContent = "id — troque pelo botão Renomear id";
+    }
     inp.addEventListener("input", e => {
       const val = e.target.value;
       rascunho.meta = rascunho.meta || {};
@@ -1019,6 +1079,20 @@ function cardEdicao(f){
     });
     fd.appendChild(lb); fd.appendChild(inp); grid.appendChild(fd);
   });
+
+  const fdA = el("div","field");
+  fdA.style.gridColumn = "1/-1";
+  fdA.appendChild(el("label",null,"autores — marque quem assina este artigo"));
+  const pickerAutores = criarPicker(
+    estado.autores
+      .slice().sort((x,y) => (x.nome||"").localeCompare(y.nome||"","pt"))
+      .map(x => ({ id:x.id, rotulo:x.nome || x.id,
+                   detalhe:[x.afiliacao, x.sede].filter(Boolean).join(" · ") })),
+    lista(rascunho,"autores"),
+    "nenhum autor cadastrado — crie na aba Autores"
+  );
+  fdA.appendChild(pickerAutores.elemento);
+  grid.appendChild(fdA);
   art.appendChild(grid);
 
   const rows = el("div","rows");
@@ -1036,6 +1110,8 @@ function cardEdicao(f){
   art.appendChild(rows);
 
   salvar.addEventListener("click", () => {
+    rascunho.meta = rascunho.meta || {};
+    rascunho.meta.autores = pickerAutores.marcados();
     const idx = estado.fichas.findIndex(x => x.id === f.id);
     if (idx >= 0) estado.fichas[idx] = rascunho;
     editando = null; sujo = true; salvarLocal(); render();
@@ -1093,6 +1169,44 @@ function paraSlug(txt){
     .replace(/^-+|-+$/g, "");
 }
 
+/* Lista de caixas de seleção. Devolve um objeto que sabe dizer o que está
+   marcado — vínculo se escolhe clicando, não digitando id. */
+function criarPicker(itens, marcados, vazio){
+  const box = el("div","picker");
+  const set = new Set(marcados);
+  if (!itens.length){
+    box.appendChild(el("div","picker-vazio", vazio || "nada disponível"));
+    return { elemento: box, marcados: () => [] };
+  }
+  itens.forEach(it => {
+    const lb = el("label");
+    const cb = el("input"); cb.type = "checkbox"; cb.value = it.id;
+    cb.checked = set.has(it.id);
+    cb.addEventListener("change", () => {
+      if (cb.checked) set.add(it.id); else set.delete(it.id);
+    });
+    const rot = el("span","rot");
+    rot.appendChild(document.createTextNode(it.rotulo));
+    if (it.detalhe) rot.appendChild(el("small",null,it.detalhe));
+    lb.appendChild(cb); lb.appendChild(rot);
+    box.appendChild(lb);
+  });
+  return { elemento: box, marcados: () => itens.filter(i => set.has(i.id)).map(i => i.id) };
+}
+
+/* Vínculos que apontam para quem não existe — foi assim que a renomeação
+   de um autor quebrou em silêncio. */
+function vinculosQuebrados(){
+  const idsAutores = new Set(estado.autores.map(a => a.id));
+  const quebrados = [];
+  estado.fichas.forEach(f => {
+    lista(f,"autores").forEach(id => {
+      if (!idsAutores.has(id)) quebrados.push({ ficha:f.id, autor:id });
+    });
+  });
+  return quebrados;
+}
+
 function iniciais(nome){
   const partes = (nome||"?").replace(/,/g," ").split(/\s+/).filter(Boolean);
   if (!partes.length) return "?";
@@ -1147,6 +1261,28 @@ function renderAutores(){
     acoes.appendChild(b);
     d.appendChild(acoes);
     return pane.appendChild(d);
+  }
+
+  const quebrados = vinculosQuebrados();
+  if (quebrados.length){
+    const al = el("div","alerta-vinculo");
+    const nomes = [...new Set(quebrados.map(q => q.autor))];
+    al.innerHTML = "<b>Vínculo apontando para autor que não existe.</b> " +
+      quebrados.map(q => "<code>"+esc(q.ficha)+"</code> → <code>"+esc(q.autor)+"</code>").join("; ") +
+      ". Isso acontece quando o id do autor muda depois do vínculo feito.";
+    const b = el("button","btn danger","Limpar vínculos órfãos");
+    b.addEventListener("click", () => {
+      if (!confirm("Remover " + quebrados.length + " vínculo(s) que apontam para autor inexistente?\nAs fichas e os autores não são apagados — só a ligação quebrada.")) return;
+      const idsAutores = new Set(estado.autores.map(x => x.id));
+      estado.fichas.forEach(f => {
+        const limpos = lista(f,"autores").filter(id => idsAutores.has(id));
+        f.meta = f.meta || {}; f.meta.autores = limpos;
+      });
+      sujo = true; salvarLocal(); render();
+      aviso("Vínculos órfãos removidos. Agora marque o autor certo pelo botão Editar.", "ok");
+    });
+    al.appendChild(b);
+    pane.appendChild(al);
   }
 
   // panorama curto: para uma tese sobre geografia epistêmica, onde os autores
@@ -1347,15 +1483,18 @@ function cardAutorEdicao(a){
 
   // ----- fichas ligadas -----
   const fdF = el("div","field largo");
-  fdF.appendChild(el("label",null,"fichas deste autor (ids separados por vírgula)"));
-  const inpF = el("input");
-  inpF.value = estado.fichas.filter(f => lista(f,"autores").includes(a.id)).map(f => f.id).join(", ");
-  inpF.placeholder = estado.fichas.map(f=>f.id).slice(0,3).join(", ");
-  let idsFichas = null;
-  inpF.addEventListener("input", e => {
-    idsFichas = e.target.value.split(",").map(s=>s.trim()).filter(Boolean);
-  });
-  fdF.appendChild(inpF); grid.appendChild(fdF);
+  fdF.appendChild(el("label",null,"fichas deste autor — marque as que ele assina"));
+  const pickerFichas = criarPicker(
+    estado.fichas.map(f => ({
+      id: f.id,
+      rotulo: rotulo(f) + " — " + (campo(f,"titulo") || f.id),
+      detalhe: f.id
+    })),
+    estado.fichas.filter(f => lista(f,"autores").includes(a.id)).map(f => f.id),
+    "nenhuma ficha no caderno ainda"
+  );
+  fdF.appendChild(pickerFichas.elemento);
+  grid.appendChild(fdF);
   art.appendChild(grid);
 
   // ----- observações -----
@@ -1371,18 +1510,17 @@ function cardAutorEdicao(a){
   salvar.addEventListener("click", () => {
     const i = estado.autores.findIndex(x => x.id === a.id);
     if (i >= 0) estado.autores[i] = rascunho;
-    if (idsFichas !== null){
-      // reescreve o vínculo dos dois lados, para não sobrar autor fantasma
-      estado.fichas.forEach(f => {
-        const atuais = lista(f,"autores");
-        const deve = idsFichas.includes(f.id);
-        const tem = atuais.includes(a.id);
-        if (deve && !tem) atuais.push(a.id);
-        if (!deve && tem) atuais.splice(atuais.indexOf(a.id), 1);
-        f.meta = f.meta || {};
-        f.meta.autores = atuais;
-      });
-    }
+    // reescreve o vínculo dos dois lados, para não sobrar autor fantasma
+    const idsFichas = pickerFichas.marcados();
+    estado.fichas.forEach(f => {
+      const atuais = lista(f,"autores");
+      const deve = idsFichas.includes(f.id);
+      const tem = atuais.includes(a.id);
+      if (deve && !tem) atuais.push(a.id);
+      if (!deve && tem) atuais.splice(atuais.indexOf(a.id), 1);
+      f.meta = f.meta || {};
+      f.meta.autores = atuais;
+    });
     editandoAutor = null; sujo = true; salvarLocal(); render();
   });
   cancelar.addEventListener("click", () => { editandoAutor = null; renderConteudo(); });
