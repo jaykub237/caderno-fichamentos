@@ -237,6 +237,46 @@ button.toggle:hover{background:var(--surface-2);color:var(--accent);border-color
 .chip.foco{border-color:var(--accent);font-weight:600}
 .chip.foco::before{content:"★ ";color:var(--accent)}
 
+/* ---- autores ---- */
+.autores-grid{display:grid;gap:20px}
+@media(min-width:900px){.autores-grid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1300px){.autores-grid{grid-template-columns:repeat(3,1fr)}}
+.autor{border:1px solid var(--rule-hard);background:var(--surface);display:flex;flex-direction:column;scroll-margin-top:130px}
+.autor>header{display:flex;gap:16px;padding:18px 20px;border-bottom:2px solid var(--ink);background:var(--surface-2);align-items:flex-start}
+.retrato{width:74px;height:74px;flex-shrink:0;border:1px solid var(--rule-hard);background:var(--paper);
+  object-fit:cover;display:block;border-radius:2px}
+.retrato-vazio{width:74px;height:74px;flex-shrink:0;border:1px dashed var(--rule-hard);background:var(--paper);
+  display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:19px;
+  color:var(--ink-faint);border-radius:2px;letter-spacing:.04em}
+.autor>header .quem{flex:1;min-width:0}
+.autor>header h3{font-size:17px;font-weight:600;letter-spacing:-.01em;margin-bottom:5px;text-wrap:balance}
+.autor .onde{font-size:13.5px;color:var(--ink-soft);line-height:1.45}
+.autor .acoes{display:flex;gap:6px;flex-shrink:0}
+.autor .campos{padding:4px 20px 8px;flex:1}
+.autor.recolhida .campos,.autor.recolhida .obs{display:none}
+.linha-campo{display:grid;grid-template-columns:104px 1fr;gap:6px 14px;padding:10px 0;border-bottom:1px solid var(--rule)}
+.linha-campo:last-child{border-bottom:none}
+.linha-campo>dt{font-family:var(--mono);font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--ink-faint);padding-top:3px}
+.linha-campo>dd{font-size:14.5px;min-width:0;word-break:break-word}
+.linha-campo>dd .falta{color:var(--ink-faint);font-style:italic}
+.autor .obs{margin:0 20px 18px;padding:14px 16px;background:var(--pen-bg);border-left:3px solid var(--pen)}
+.autor .obs>span{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--pen);display:block;margin-bottom:7px}
+.autor .obs .txt{font-size:14.5px;line-height:1.55}
+.autor .obs .txt p+p{margin-top:8px}
+.autor .obs textarea{width:100%;min-height:90px;background:var(--surface);border:1px solid var(--rule-hard);
+  padding:9px 11px;border-radius:2px;font-family:var(--mono);font-size:12.5px;line-height:1.6;resize:vertical}
+.autor .fichas-do-pais{padding:0 20px 16px;margin-top:0}
+.autor-edit{padding:16px 20px;background:var(--accent-bg);border-bottom:1px solid var(--rule-hard);display:grid;gap:10px 14px}
+@media(min-width:600px){.autor-edit{grid-template-columns:1fr 1fr}}
+.autor-edit .largo{grid-column:1/-1}
+.foto-controles{display:flex;flex-wrap:wrap;gap:7px;align-items:center;grid-column:1/-1}
+.foto-controles input[type=file]{font-size:12px;max-width:210px}
+.resumo-autores{display:flex;flex-wrap:wrap;gap:6px 18px;font-family:var(--mono);font-size:11px;
+  color:var(--ink-soft);margin-bottom:18px}
+.resumo-autores b{color:var(--accent);font-weight:400}
+
 /* ---- leitura em tela cheia ---- */
 .leitura{position:fixed;inset:0;z-index:70;background:var(--paper);overflow-y:auto;overscroll-behavior:contain}
 .leitura[hidden]{display:none}
@@ -298,6 +338,7 @@ button.toggle:hover{background:var(--surface-2);color:var(--accent);border-color
     <button id="tab-matriz" aria-selected="true">Matriz</button>
     <button id="tab-fichas" aria-selected="false">Fichas</button>
     <button id="tab-paises" aria-selected="false">Países</button>
+    <button id="tab-autores" aria-selected="false">Autores</button>
     <button id="tab-analise" aria-selected="false">Análise</button>
   </nav>
   <div class="filters">
@@ -309,6 +350,7 @@ button.toggle:hover{background:var(--surface-2);color:var(--accent);border-color
   <section class="pane" id="pane-matriz"></section>
   <section class="pane" id="pane-fichas" hidden></section>
   <section class="pane" id="pane-paises" hidden></section>
+  <section class="pane" id="pane-autores" hidden></section>
   <section class="pane" id="pane-analise" hidden></section>
 </main>
 
@@ -341,9 +383,22 @@ const EIXOS = {
    no Gist (campo `vocab`). Sem dados carregados não há datalist — e também
    não há nada para editar. */
 function vocab(){ return (estado && estado.vocab) ? estado.vocab : {}; }
-const LISTAS = ["regiao","refs","tags","filiacao"];   // campos multivalorados
-const META_ORDEM = ["id","autor","ano","titulo","zotero","doi","campo","genero","processo",
+const LISTAS = ["regiao","refs","tags","filiacao","autores"];   // campos multivalorados
+const META_ORDEM = ["id","autor","autores","ano","titulo","zotero","doi","campo","genero","processo",
   "filiacao","metodo","nivel","regiao","caso","recorte","criterio","posicao","uso","capitulo","status","refs","tags"];
+
+/* Ficha de autor. `autor` continua sendo o texto de exibição da ficha;
+   `autores` guarda os ids, porque um artigo pode ter vários. */
+const CAMPOS_AUTOR = [
+  ["nome",      "nome"],
+  ["pais",      "país de origem"],
+  ["sede",      "país da instituição"],
+  ["afiliacao", "filiação institucional"],
+  ["area",      "área e formação"],
+  ["link",      "perfil ou ORCID"]
+];
+const FOTO_LADO = 220;      // px do lado do recorte quadrado
+const FOTO_ALERTA = 90000;  // acima disso o dataURI começa a pesar no Gist
 
 const SECOES_PADRAO = [
   ["A1","Referência completa"],["A3","Campo e gênero"],["A4","Palavras-chave"],
@@ -370,14 +425,15 @@ const SECOES_PAIS = [
 
 /* ================================================================ estado */
 
-let estado = { schema:1, savedAt:null, fichas:[], paises:[] };
+let estado = { schema:1, savedAt:null, fichas:[], paises:[], autores:[] };
 let cfg    = { gist:"", token:"", seen:null };
-let ui     = { recolhidas:[], recolhidasPais:[] };
+let ui     = { recolhidas:[], recolhidasPais:[], recolhidasAutor:[] };
 let filtros = { busca:"" };
 FILTRAVEIS.forEach(f => filtros[f] = []);
 let aba = "matriz";
 let editando = null;      // id da ficha em edição
 let editandoPais = null;
+let editandoAutor = null;
 let sujo = false;         // há mudanças locais não enviadas
 let leitura = null;       // id da ficha aberta em tela cheia
 let leituraEdit = false;  // tela cheia em modo de anotação
@@ -473,14 +529,17 @@ function carregarLocal(){
 function normalizar(){
   if (!Array.isArray(estado.fichas)) estado.fichas = [];
   if (!Array.isArray(estado.paises)) estado.paises = [];   // vem do Gist, nunca do código
+  if (!Array.isArray(estado.autores)) estado.autores = [];
   if (!Array.isArray(ui.recolhidas)) ui.recolhidas = [];
   if (!Array.isArray(ui.recolhidasPais)) ui.recolhidasPais = [];
+  if (!Array.isArray(ui.recolhidasAutor)) ui.recolhidasAutor = [];
 }
 function salvarCfg(){ localStorage.setItem(K_SYNC, JSON.stringify(cfg)); }
 function salvarUi(){ localStorage.setItem(K_UI, JSON.stringify(ui)); }
 
-const estaRecolhida     = id => ui.recolhidas.includes(id);
-const estaRecolhidaPais = id => ui.recolhidasPais.includes(id);
+const estaRecolhida      = id => ui.recolhidas.includes(id);
+const estaRecolhidaPais  = id => ui.recolhidasPais.includes(id);
+const estaRecolhidaAutor = id => ui.recolhidasAutor.includes(id);
 function alternarRecolhida(id, lista){
   const i = lista.indexOf(id);
   if (i >= 0) lista.splice(i,1); else lista.push(id);
@@ -968,6 +1027,357 @@ function cardEdicao(f){
   return art;
 }
 
+/* =============================================================== autores */
+/* Um artigo pode ter vários autores, então a ligação é por lista de ids em
+   ficha.meta.autores. O campo `autor` continua sendo só o texto de exibição. */
+
+function autorVazio(id, nome){
+  return { id, nome:nome||id, pais:"", sede:"", afiliacao:"", area:"", link:"", foto:"", obs:"" };
+}
+
+function fichasDoAutor(a){
+  return estado.fichas.filter(f => {
+    const ids = lista(f,"autores");
+    if (ids.length) return ids.includes(a.id);
+    // fallback para fichas ainda sem o vínculo explícito: sobrenome do autor
+    const sobrenome = (a.nome||"").split(",")[0].trim().toLowerCase();
+    if (sobrenome.length < 4) return false;
+    return (campo(f,"autor")||"").toLowerCase().includes(sobrenome);
+  });
+}
+
+/* Letras que a decomposição NFD não resolve porque não são acentos: numa
+   bibliografia de segurança internacional, Wæver e Bjørn aparecem. */
+const LETRAS_SOLTAS = { "æ":"ae", "œ":"oe", "ø":"o", "å":"a", "ß":"ss", "đ":"d", "ð":"d", "þ":"th", "ł":"l" };
+function paraSlug(txt){
+  return (txt||"").toLowerCase()
+    .replace(/[æœøåßđðþł]/g, c => LETRAS_SOLTAS[c] || c)
+    .normalize("NFD").replace(/\p{Diacritic}/gu, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function iniciais(nome){
+  const partes = (nome||"?").replace(/,/g," ").split(/\s+/).filter(Boolean);
+  if (!partes.length) return "?";
+  const a = partes[0][0] || "";
+  const b = partes.length > 1 ? (partes[partes.length-1][0] || "") : "";
+  return (a + b).toUpperCase();
+}
+
+/* Reduz a imagem a um quadrado pequeno antes de guardar: o dataURI viaja
+   dentro do caderno.json, e foto de 3 MB estoura o localStorage. */
+function processarFoto(file, cb){
+  const fr = new FileReader();
+  fr.onerror = () => cb(null, "Não consegui ler o arquivo.");
+  fr.onload = () => {
+    const img = new Image();
+    img.onerror = () => cb(null, "O arquivo não parece ser uma imagem.");
+    img.onload = () => {
+      try {
+        const lado = FOTO_LADO;
+        const c = document.createElement("canvas");
+        c.width = lado; c.height = lado;
+        const ctx = c.getContext("2d");
+        ctx.fillStyle = "#fff"; ctx.fillRect(0,0,lado,lado);
+        const min = Math.min(img.width, img.height);
+        ctx.drawImage(img, (img.width-min)/2, (img.height-min)/2, min, min, 0, 0, lado, lado);
+        cb(c.toDataURL("image/jpeg", 0.82), null);
+      } catch(e){ cb(null, "Não consegui processar a imagem: " + e.message); }
+    };
+    img.src = fr.result;
+  };
+  fr.readAsDataURL(file);
+}
+
+function renderAutores(){
+  const pane = $("#pane-autores");
+  pane.innerHTML = "";
+
+  pane.appendChild(el("h2","sec","Autores"));
+  pane.appendChild(el("p","hint",
+    "Quem escreveu o que está no caderno. Todos os campos são editáveis — a ideia é você completar conforme for pesquisando. As fichas de cada autor são calculadas pelo campo «autores» da ficha."));
+
+  if (!estado.autores.length){
+    const d = el("div","empty-state");
+    d.appendChild(el("h3",null,"Nenhum autor carregado"));
+    d.appendChild(el("p",null,"As fichas de autor vêm do Gist, como o resto. Clique em Buscar, ou crie uma em branco."));
+    const b = el("button","btn solid","+ Autor");
+    b.addEventListener("click", novoAutor);
+    d.appendChild(el("div",null," ")); d.appendChild(b);
+    return pane.appendChild(d);
+  }
+
+  // panorama curto: para uma tese sobre geografia epistêmica, onde os autores
+  // estão sediados é dado, não decoração
+  const porSede = {};
+  estado.autores.forEach(a => { const k = a.sede || "sem país"; porSede[k] = (porSede[k]||0)+1; });
+  const semFoto = estado.autores.filter(a => !a.foto).length;
+  const resumo = el("div","resumo-autores");
+  resumo.appendChild(el("span",null, estado.autores.length + " autores"));
+  Object.keys(porSede).sort().forEach(k => {
+    const s = el("span"); s.innerHTML = "<b>"+esc(k)+"</b> " + porSede[k]; resumo.appendChild(s);
+  });
+  if (semFoto) resumo.appendChild(el("span",null, semFoto + " sem foto"));
+  pane.appendChild(resumo);
+
+  const barra = el("div","barra-ferramentas");
+  const bRec = el("button","btn quiet","Recolher todos");
+  bRec.addEventListener("click", () => {
+    estado.autores.forEach(a => { if (!estaRecolhidaAutor(a.id)) ui.recolhidasAutor.push(a.id); });
+    salvarUi(); renderConteudo();
+  });
+  const bExp = el("button","btn quiet","Expandir todos");
+  bExp.addEventListener("click", () => { ui.recolhidasAutor = []; salvarUi(); renderConteudo(); });
+  const bNovo = el("button","btn quiet","+ Autor");
+  bNovo.addEventListener("click", novoAutor);
+  barra.appendChild(bRec); barra.appendChild(bExp); barra.appendChild(bNovo);
+  pane.appendChild(barra);
+
+  const grid = el("div","autores-grid");
+  estado.autores.slice()
+    .sort((a,b) => (a.nome||"").localeCompare(b.nome||"", "pt"))
+    .forEach(a => grid.appendChild(editandoAutor === a.id ? cardAutorEdicao(a) : cardAutor(a)));
+  pane.appendChild(grid);
+}
+
+function cardAutor(a){
+  const art = el("article", estaRecolhidaAutor(a.id) ? "autor recolhida" : "autor");
+  art.id = "a-" + a.id;
+
+  const hd = el("header");
+  if (a.foto){
+    const img = el("img","retrato");
+    img.src = a.foto; img.alt = "Retrato de " + (a.nome||a.id);
+    img.loading = "lazy";
+    hd.appendChild(img);
+  } else {
+    hd.appendChild(el("div","retrato-vazio", iniciais(a.nome)));
+  }
+
+  const quem = el("div","quem");
+  quem.appendChild(el("h3", null, a.nome || a.id));
+  const onde = [a.afiliacao, a.sede].filter(Boolean).join(" · ");
+  quem.appendChild(el("div","onde", onde || "sem filiação registrada"));
+  hd.appendChild(quem);
+
+  const acoes = el("div","acoes");
+  const bEd = el("button","btn quiet","Editar");
+  bEd.addEventListener("click", () => { editandoAutor = a.id; renderConteudo();
+    setTimeout(()=>{ const n=document.getElementById("a-"+a.id); if(n) n.scrollIntoView({block:"start"}); },0); });
+  acoes.appendChild(bEd);
+  const tg = el("button","toggle", estaRecolhidaAutor(a.id) ? "+" : "−");
+  tg.type="button"; tg.title = estaRecolhidaAutor(a.id) ? "Expandir" : "Recolher";
+  tg.setAttribute("aria-expanded", estaRecolhidaAutor(a.id) ? "false" : "true");
+  tg.addEventListener("click", () => {
+    alternarRecolhida(a.id, ui.recolhidasAutor);
+    art.classList.toggle("recolhida");
+    const fechada = art.classList.contains("recolhida");
+    tg.textContent = fechada ? "+" : "−";
+    tg.setAttribute("aria-expanded", fechada ? "false" : "true");
+  });
+  acoes.appendChild(tg);
+  hd.appendChild(acoes);
+  art.appendChild(hd);
+
+  const campos = el("dl","campos");
+  CAMPOS_AUTOR.forEach(([k, rot]) => {
+    if (k === "nome") return;   // já está no cabeçalho
+    const linha = el("div","linha-campo");
+    linha.appendChild(el("dt",null,rot));
+    const dd = el("dd");
+    const v = (a[k]||"").trim();
+    if (!v) dd.appendChild(el("span","falta","a pesquisar"));
+    else if (k === "link"){
+      const lk = el("a",null,v);
+      lk.href = v; lk.target = "_blank"; lk.rel = "noopener noreferrer";
+      dd.appendChild(lk);
+    } else dd.textContent = v;
+    linha.appendChild(dd);
+    campos.appendChild(linha);
+  });
+  art.appendChild(campos);
+
+  const fichas = fichasDoAutor(a);
+  const box = el("div","fichas-do-pais");
+  box.appendChild(el("span","rot-rel", fichas.length ? "fichas" : "sem fichas"));
+  fichas.forEach(f => {
+    const b = el("button", null, rotulo(f));
+    b.title = campo(f,"titulo");
+    b.addEventListener("click", () => abrirLeitura(f.id));
+    box.appendChild(b);
+  });
+  art.appendChild(box);
+
+  const obs = el("div","obs");
+  obs.appendChild(el("span",null,"Observações"));
+  const txt = el("div","txt");
+  if ((a.obs||"").trim()) txt.innerHTML = md(a.obs);
+  else txt.appendChild(el("p","leitura-vazia","sem comentários ainda"));
+  obs.appendChild(txt);
+  art.appendChild(obs);
+
+  return art;
+}
+
+function cardAutorEdicao(a){
+  const art = el("article","autor");
+  art.id = "a-" + a.id;
+  const rascunho = JSON.parse(JSON.stringify(a));
+
+  const bar = el("div","edit-bar");
+  const salvar = el("button","btn solid","Salvar");
+  const cancelar = el("button","btn quiet","Cancelar");
+  const apagar = el("button","btn danger","Apagar");
+  bar.appendChild(salvar); bar.appendChild(cancelar); bar.appendChild(apagar);
+  bar.appendChild(el("span","note", a.id));
+  art.appendChild(bar);
+
+  const grid = el("div","autor-edit");
+
+  // ----- foto -----
+  const previa = el("div");
+  previa.style.cssText = "display:flex;gap:12px;align-items:center;grid-column:1/-1";
+  const alvoImg = el("div");
+  const pintarPrevia = () => {
+    alvoImg.innerHTML = "";
+    if (rascunho.foto){
+      const img = el("img","retrato"); img.src = rascunho.foto; img.alt = "";
+      alvoImg.appendChild(img);
+    } else alvoImg.appendChild(el("div","retrato-vazio", iniciais(rascunho.nome)));
+  };
+  pintarPrevia();
+  previa.appendChild(alvoImg);
+  const dica = el("div");
+  dica.style.cssText = "font-family:var(--mono);font-size:10.5px;color:var(--ink-soft);line-height:1.6";
+  dica.textContent = "A imagem é recortada num quadrado de " + FOTO_LADO + "px e guardada dentro do caderno. Use retratos pequenos.";
+  previa.appendChild(dica);
+  grid.appendChild(previa);
+
+  const ctrl = el("div","foto-controles");
+  const inpFile = el("input"); inpFile.type = "file"; inpFile.accept = "image/*";
+  inpFile.addEventListener("change", () => {
+    const file = inpFile.files && inpFile.files[0];
+    if (!file) return;
+    processarFoto(file, (dataUri, erro) => {
+      if (erro) return aviso(erro, "err");
+      rascunho.foto = dataUri;
+      pintarPrevia();
+      if (dataUri.length > FOTO_ALERTA)
+        aviso("A foto ficou com " + Math.round(dataUri.length/1024) + " KB. Funciona, mas várias assim engordam o Gist.", "warn");
+    });
+  });
+  ctrl.appendChild(inpFile);
+  const bUrl = el("button","btn quiet","Usar URL");
+  bUrl.addEventListener("click", () => {
+    const u = prompt("Endereço da imagem (fica como link externo, não é copiada para o caderno):", rascunho.foto && rascunho.foto.startsWith("http") ? rascunho.foto : "https://");
+    if (u === null) return;
+    rascunho.foto = u.trim(); pintarPrevia();
+  });
+  ctrl.appendChild(bUrl);
+  const bSem = el("button","btn quiet","Remover foto");
+  bSem.addEventListener("click", () => { rascunho.foto = ""; pintarPrevia(); });
+  ctrl.appendChild(bSem);
+  grid.appendChild(ctrl);
+
+  // ----- campos -----
+  CAMPOS_AUTOR.forEach(([k, rot]) => {
+    const fd = el("div","field");
+    if (k === "afiliacao" || k === "link" || k === "area") fd.classList.add("largo");
+    fd.appendChild(el("label",null,rot));
+    const inp = el("input");
+    inp.value = rascunho[k] || "";
+    if (k === "pais" || k === "sede") inp.placeholder = "ex.: Brasil";
+    if (k === "link") inp.placeholder = "https://";
+    inp.addEventListener("input", e => { rascunho[k] = e.target.value; });
+    fd.appendChild(inp); grid.appendChild(fd);
+  });
+
+  // ----- fichas ligadas -----
+  const fdF = el("div","field largo");
+  fdF.appendChild(el("label",null,"fichas deste autor (ids separados por vírgula)"));
+  const inpF = el("input");
+  inpF.value = estado.fichas.filter(f => lista(f,"autores").includes(a.id)).map(f => f.id).join(", ");
+  inpF.placeholder = estado.fichas.map(f=>f.id).slice(0,3).join(", ");
+  let idsFichas = null;
+  inpF.addEventListener("input", e => {
+    idsFichas = e.target.value.split(",").map(s=>s.trim()).filter(Boolean);
+  });
+  fdF.appendChild(inpF); grid.appendChild(fdF);
+  art.appendChild(grid);
+
+  // ----- observações -----
+  const obs = el("div","obs");
+  obs.appendChild(el("span",null,"Observações"));
+  const ta = el("textarea");
+  ta.value = rascunho.obs || "";
+  ta.placeholder = "Comentários pessoais: posição no debate, quem orientou, com quem publica, o que desconfio…";
+  ta.addEventListener("input", e => { rascunho.obs = e.target.value; });
+  obs.appendChild(ta);
+  art.appendChild(obs);
+
+  salvar.addEventListener("click", () => {
+    const i = estado.autores.findIndex(x => x.id === a.id);
+    if (i >= 0) estado.autores[i] = rascunho;
+    if (idsFichas !== null){
+      // reescreve o vínculo dos dois lados, para não sobrar autor fantasma
+      estado.fichas.forEach(f => {
+        const atuais = lista(f,"autores");
+        const deve = idsFichas.includes(f.id);
+        const tem = atuais.includes(a.id);
+        if (deve && !tem) atuais.push(a.id);
+        if (!deve && tem) atuais.splice(atuais.indexOf(a.id), 1);
+        f.meta = f.meta || {};
+        f.meta.autores = atuais;
+      });
+    }
+    editandoAutor = null; sujo = true; salvarLocal(); render();
+  });
+  cancelar.addEventListener("click", () => { editandoAutor = null; renderConteudo(); });
+  apagar.addEventListener("click", () => {
+    if (!confirm("Apagar a ficha de autor de " + (a.nome||a.id) + "? As fichas de artigo não são afetadas.")) return;
+    estado.autores = estado.autores.filter(x => x.id !== a.id);
+    estado.fichas.forEach(f => {
+      const atuais = lista(f,"autores");
+      if (atuais.includes(a.id)){ atuais.splice(atuais.indexOf(a.id),1); f.meta.autores = atuais; }
+    });
+    editandoAutor = null; sujo = true; salvarLocal(); render();
+  });
+
+  return art;
+}
+
+function novoAutor(){
+  abrirModal(b => {
+    b.appendChild(el("h3",null,"Autor novo"));
+    b.appendChild(el("p",null,"Um artigo pode ter vários autores: crie uma ficha para cada um e ligue todos à mesma ficha de artigo."));
+    const f1 = el("div","field");
+    f1.appendChild(el("label",null,"nome — como aparece na referência"));
+    const i1 = el("input"); i1.placeholder="ex.: Sobrenome, Nome"; f1.appendChild(i1); b.appendChild(f1);
+    const f2 = el("div","field");
+    f2.appendChild(el("label",null,"id — minúsculas e hífen"));
+    const i2 = el("input"); i2.placeholder="ex.: sobrenome-nome"; f2.appendChild(i2); b.appendChild(f2);
+    i1.addEventListener("input", () => {
+      if (i2.dataset.tocado) return;
+      i2.value = paraSlug(i1.value);
+    });
+    i2.addEventListener("input", () => { i2.dataset.tocado = "1"; });
+
+    const a = el("div","modal-actions");
+    const ok = el("button","btn solid","Criar");
+    ok.addEventListener("click", () => {
+      const id = i2.value.trim();
+      if (!id) return aviso("O id é obrigatório.", "err");
+      if (estado.autores.some(x => x.id === id)) return aviso("Já existe um autor com esse id.", "err");
+      estado.autores.push(autorVazio(id, i1.value.trim() || id));
+      sujo = true; editandoAutor = id; salvarLocal(); fecharModal(); irPara("autores"); render();
+    });
+    const fe = el("button","btn quiet","Cancelar"); fe.addEventListener("click", fecharModal);
+    a.appendChild(ok); const sp=el("span","spacer"); a.appendChild(sp); a.appendChild(fe);
+    b.appendChild(a);
+  });
+}
+
 /* ==================================================== leitura em tela cheia */
 /* Pensada para ficar ao lado do PDF do artigo: uma ficha por vez, sem barra,
    sem filtro, sem matriz. Setas trocam de ficha dentro do que os filtros
@@ -1076,6 +1486,20 @@ function renderLeitura(){
   cab.appendChild(el("span","eyebrow", rotulo(f)));
   cab.appendChild(el("h2", null, campo(f,"titulo") || f.id));
   const ref = el("div","ref"); ref.innerHTML = md(secao(f,"A1")); cab.appendChild(ref);
+
+  // quem escreveu, com a filiação à mão enquanto se lê o artigo
+  const autoresDaFicha = lista(f,"autores")
+    .map(id => estado.autores.find(a => a.id === id)).filter(Boolean);
+  if (autoresDaFicha.length){
+    const linhaA = el("div","ref");
+    linhaA.style.marginTop = "10px";
+    linhaA.innerHTML = autoresDaFicha.map(a =>
+      "<strong>" + esc(a.nome) + "</strong>" +
+      ([a.afiliacao, a.sede].filter(Boolean).length
+        ? " — " + esc([a.afiliacao, a.sede].filter(Boolean).join(", ")) : "")
+    ).join("<br>");
+    cab.appendChild(linhaA);
+  }
 
   const bg = el("div","badges");
   const foco = paisesFoco();
@@ -1251,7 +1675,7 @@ function novoDossie(){
     const a = el("div","modal-actions");
     const ok = el("button","btn solid","Criar");
     ok.addEventListener("click", () => {
-      const id = i1.value.trim().toLowerCase().replace(/\s+/g,"-");
+      const id = paraSlug(i1.value);
       if (!id) return aviso("O id é obrigatório.", "err");
       if (estado.paises.some(x => x.id === id)) return aviso("Já existe um dossiê com esse id.", "err");
       estado.paises.push(dossieVazio(id, i2.value.trim() || id));
@@ -1682,10 +2106,13 @@ function abrirImportar(){
 function aplicarImport(dados){
   if (Array.isArray(dados.fichas)){
     if (estado.fichas.length && !confirm("Isso substitui as " + estado.fichas.length + " fichas locais. Continuar?")) return;
-    // preserva os dossiês de país se o arquivo importado não os trouxer
-    const paisesAntigos = estado.paises;
+    // preserva dossiês e autores se o arquivo importado não os trouxer
+    const paisesAntigos = estado.paises, autoresAntigos = estado.autores;
     estado = { schema:1, savedAt:dados.savedAt||null, fichas:dados.fichas,
-               paises: Array.isArray(dados.paises) && dados.paises.length ? dados.paises : paisesAntigos };
+               titulo: dados.titulo || estado.titulo,
+               vocab: dados.vocab || estado.vocab,
+               paises: Array.isArray(dados.paises) && dados.paises.length ? dados.paises : paisesAntigos,
+               autores: Array.isArray(dados.autores) && dados.autores.length ? dados.autores : autoresAntigos };
     normalizar();
     sujo = true; salvarLocal(); render();
     return aviso("Importadas " + estado.fichas.length + " fichas. Clique em Enviar para gravar no gist.", "ok");
@@ -1753,7 +2180,7 @@ function novaFicha(){
 
 /* =============================================================== render */
 
-const ABAS = ["matriz","fichas","paises","analise"];
+const ABAS = ["matriz","fichas","paises","autores","analise"];
 
 function irPara(nome){
   aba = nome;
@@ -1767,6 +2194,7 @@ function renderConteudo(){
   if (aba === "matriz") renderMatriz();
   else if (aba === "fichas") renderFichas();
   else if (aba === "paises") renderPaises();
+  else if (aba === "autores") renderAutores();
   else renderAnalise();
 }
 function render(){
