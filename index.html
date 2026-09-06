@@ -148,6 +148,7 @@ a.xref{font-family:var(--mono);font-size:13.5px;text-decoration:none;border-bott
 .v-tensao{background:var(--pen-bg);color:var(--pen)}
 .v-padrao{background:var(--accent-bg);color:var(--accent)}
 .v-indep{background:var(--agree-bg);color:var(--agree)}
+.v-cita{background:var(--warn-bg);color:var(--warn)}
 table.cross{border-collapse:collapse;width:100%;font-size:13px;font-family:var(--mono)}
 table.cross th,table.cross td{border:1px solid var(--rule);padding:8px 10px;text-align:left;vertical-align:top}
 table.cross th{background:var(--surface-2);font-weight:400;color:var(--ink-soft);font-size:11px;letter-spacing:.06em}
@@ -1971,6 +1972,11 @@ function analise(fs){
     const fa=fs[a], fb=fs[b];
     const ra=lista(fa,"refs"), rb=lista(fb,"refs");
     const comuns = ra.filter(r => rb.includes(r));
+    // co-citação não vê "A cita B": é a relação mais forte que existe entre
+    // duas fichas e some se ninguém procurar por ela
+    const cita = [];
+    if (ra.includes(fb.id)) cita.push({ de:fa.id, para:fb.id });
+    if (rb.includes(fa.id)) cita.push({ de:fb.id, para:fa.id });
     const divergem=[], convergem=[];
     EIXOS_PAR.forEach(k => {
       const va=campo(fa,k), vb=campo(fb,k);
@@ -1979,13 +1985,19 @@ function analise(fs){
     });
     let veredito=null, classe="";
     const temDecisivo = divergem.some(d => d.decisivo);
-    if (comuns.length>=3 && divergem.length>=3){ veredito="tensão — mesma literatura, leituras opostas"; classe="v-tensao"; }
+    if (cita.length){
+      veredito = cita.length === 2
+        ? "diálogo direto — uma cita a outra nos dois sentidos"
+        : "linhagem — " + cita[0].de + " cita " + cita[0].para + "; ler as duas em sequência";
+      classe = "v-cita";
+    }
+    else if (comuns.length>=3 && divergem.length>=3){ veredito="tensão — mesma literatura, leituras opostas"; classe="v-tensao"; }
     else if (comuns.length>=3 && divergem.length<=2){
       if (temDecisivo){ veredito="padrão com falha — a única diferença está num eixo decisivo"; classe="v-tensao"; }
       else { veredito="padrão — usar como bloco"; classe="v-padrao"; }
     }
     else if (comuns.length<=1 && convergem.length>=3){ veredito="convergência independente — mesmo lugar por caminhos separados"; classe="v-indep"; }
-    pares.push({ a:fa, b:fb, comuns, divergem, convergem, veredito, classe });
+    pares.push({ a:fa, b:fb, comuns, cita, divergem, convergem, veredito, classe });
   }
   pares.sort((x,y) => y.comuns.length - x.comuns.length);
 
@@ -2123,6 +2135,11 @@ function renderAnalise(){
       ? "Referências em comum ("+p.comuns.length+"): " + p.comuns.map(r=>"<code>"+esc(r)+"</code>").join(" ")
       : "Nenhuma referência em comum — se os temas se tocam, isso já é um achado.";
     ul.appendChild(li1);
+    p.cita.forEach(c => {
+      const li = el("li");
+      li.innerHTML = "<b>"+esc(c.de)+"</b> cita <b>"+esc(c.para)+"</b> diretamente";
+      ul.appendChild(li);
+    });
     if (p.convergem.length) ul.appendChild(el("li",null,"Convergem em: "+p.convergem.join(", ")));
     p.divergem.forEach(dv => {
       const li = el("li");
