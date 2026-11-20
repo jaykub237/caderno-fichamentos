@@ -52,8 +52,10 @@ button.btn:disabled{opacity:.4;cursor:not-allowed}
 .syncmsg{font-family:var(--mono);font-size:11px;color:var(--ink-soft);display:flex;align-items:center;gap:7px}
 
 /* ---- tabs ---- */
-nav.tabs{max-width:1400px;margin:0 auto;padding:0 20px;display:flex;gap:2px;border-bottom:1px solid var(--rule)}
+nav.tabs{max-width:1400px;margin:0 auto;padding:0 20px;display:flex;gap:2px;border-bottom:1px solid var(--rule);
+  overflow-x:auto;scrollbar-width:thin}
 nav.tabs button{background:none;border:none;border-bottom:2px solid transparent;padding:12px 16px;cursor:pointer;
+  white-space:nowrap;flex-shrink:0;
   font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint)}
 nav.tabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
 nav.tabs button:hover{color:var(--ink)}
@@ -284,6 +286,49 @@ table.matrix .nficha{display:block;margin:0 0 2px}
   color:var(--ink-soft);margin-bottom:18px}
 .resumo-autores b{color:var(--accent);font-weight:400}
 
+/* ---- leituras pendentes ---- */
+.resumo-lt{display:flex;flex-wrap:wrap;gap:6px 18px;font-family:var(--mono);font-size:11px;color:var(--ink-soft);margin-bottom:18px}
+.resumo-lt b{color:var(--accent);font-weight:400}
+.lt-grupo{margin-bottom:28px}
+.lt-grupo>h3{font-family:var(--sans);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);
+  margin:0 0 10px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.lt-grupo>h3 small{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);letter-spacing:.04em;text-transform:none}
+.lt{border:1px solid var(--rule-hard);border-left-width:3px;background:var(--surface);padding:14px 18px;
+  margin-bottom:8px;display:grid;gap:8px 20px;scroll-margin-top:130px}
+@media(min-width:820px){.lt{grid-template-columns:1fr auto}}
+.lt.p-alta{border-left-color:var(--pen)} .lt.p-media{border-left-color:var(--warn)} .lt.p-baixa{border-left-color:var(--rule-hard)}
+.lt.feita{opacity:.62}
+.lt .ref-lt{font-size:15.5px;line-height:1.45;min-width:0}
+.lt .ref-lt b{font-weight:600}
+.lt .ref-lt .onde{color:var(--ink-soft);font-size:14px}
+.lt .meta-lt{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-family:var(--mono);font-size:10.5px;color:var(--ink-soft);margin-top:6px}
+.lt .motivo{font-size:14.5px;color:var(--ink-soft);line-height:1.55;max-width:84ch}
+.lt .motivo p+p{margin-top:6px}
+.lt .motivo ul{list-style:none;display:grid;gap:4px}
+.lt .motivo li{padding-left:14px;position:relative}
+.lt .motivo li::before{content:"—";position:absolute;left:0;color:var(--ink-faint)}
+.lt .lado{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start;align-content:flex-start}
+@media(min-width:820px){.lt .lado{flex-direction:column;align-items:flex-end;grid-row:1 / span 3;grid-column:2}}
+.lt .lado select{font-family:var(--mono);font-size:11px;color:var(--ink);background:var(--surface);
+  border:1px solid var(--rule-hard);border-radius:2px;padding:5px 6px}
+.lt .fichas-do-pais{margin-top:0}
+.pri{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border-radius:2px}
+.pri.alta{background:var(--pen-bg);color:var(--pen)}
+.pri.media{background:var(--warn-bg);color:var(--warn)}
+.pri.baixa{background:var(--surface-2);color:var(--ink-faint)}
+.st-lt{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:2px;
+  border:1px solid var(--rule-hard);color:var(--ink-faint)}
+.st-lt.fichada{border-color:var(--agree);color:var(--agree)}
+.st-lt.lendo{border-color:var(--accent);color:var(--accent)}
+.lt-edit{border:1px solid var(--accent);background:var(--surface);margin-bottom:8px;scroll-margin-top:130px}
+.lt-edit textarea{width:100%;min-height:90px;background:var(--surface);border:1px solid var(--rule-hard);
+  padding:9px 11px;border-radius:2px;font-family:var(--mono);font-size:12.5px;line-height:1.6;resize:vertical}
+.lt-edit select{background:var(--surface);border:1px solid var(--rule-hard);padding:6px 9px;border-radius:2px;font-size:14px}
+.sug-lt{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--rule);font-size:14px}
+.sug-lt:last-child{border-bottom:none}
+.sug-lt code{font-size:13px}
+.sug-lt .quem{color:var(--ink-soft);font-size:13px;flex:1;min-width:200px}
+
 /* ---- seletor por clique ---- */
 .picker{display:grid;gap:2px;max-height:230px;overflow-y:auto;border:1px solid var(--rule-hard);
   background:var(--surface);padding:6px;border-radius:2px}
@@ -361,6 +406,7 @@ table.matrix .nficha{display:block;margin:0 0 2px}
     <button id="tab-fichas" aria-selected="false">Fichas</button>
     <button id="tab-paises" aria-selected="false">Países</button>
     <button id="tab-autores" aria-selected="false">Autores</button>
+    <button id="tab-leituras" aria-selected="false">Leituras</button>
     <button id="tab-analise" aria-selected="false">Análise</button>
   </nav>
   <div class="filters">
@@ -373,6 +419,7 @@ table.matrix .nficha{display:block;margin:0 0 2px}
   <section class="pane" id="pane-fichas" hidden></section>
   <section class="pane" id="pane-paises" hidden></section>
   <section class="pane" id="pane-autores" hidden></section>
+  <section class="pane" id="pane-leituras" hidden></section>
   <section class="pane" id="pane-analise" hidden></section>
 </main>
 
@@ -447,6 +494,15 @@ const SECOES_PAIS = [
   ["P4","Documentos-chave"],["P5","Tensões e lacunas"],["P6","O que ainda falta ler"]
 ];
 
+/* Leituras pendentes: o que ainda falta fichar. A lista é conteúdo e mora no
+   Gist (campo `leituras`); daqui só saem os rótulos de status e prioridade. */
+const LT_STATUS   = { "a-ler":"a ler", "lendo":"lendo", "descartada":"descartada" };
+const LT_PRIOR    = { alta:"alta", media:"média", baixa:"baixa" };
+const LT_TIPOS    = { literatura:"literatura", documento:"documento primário" };
+const LT_VER      = { pendentes:"pendentes", todas:"todas", fichadas:"já fichadas", descartadas:"descartadas" };
+const LT_AGRUPAR  = { grupo:"tema", prioridade:"prioridade", capitulo:"capítulo", tipo:"tipo" };
+const LT_MIN_REFS = 3;   // a partir de quantas fichas uma referência vira sugestão automática
+
 /* ================================================================ estado */
 
 let estado = { schema:1, savedAt:null, fichas:[], paises:[], autores:[] };
@@ -458,6 +514,8 @@ let aba = "matriz";
 let editando = null;      // id da ficha em edição
 let editandoPais = null;
 let editandoAutor = null;
+let editandoLt = null;    // id da leitura pendente em edição
+let ltRecemCriada = null; // criada agora: Cancelar desfaz a criação, não só a edição
 let sujo = false;         // há mudanças locais não enviadas
 let leitura = null;       // id da ficha aberta em tela cheia
 let leituraEdit = false;  // tela cheia em modo de anotação
@@ -579,6 +637,10 @@ function normalizar(){
   if (!Array.isArray(estado.fichas)) estado.fichas = [];
   if (!Array.isArray(estado.paises)) estado.paises = [];   // vem do Gist, nunca do código
   if (!Array.isArray(estado.autores)) estado.autores = [];
+  if (!Array.isArray(estado.leituras)) estado.leituras = [];  // também conteúdo: vem do Gist
+  estado.leituras.forEach(l => { if (!Array.isArray(l.indicadaPor)) l.indicadaPor = []; });
+  if (!LT_VER[ui.ltVer]) ui.ltVer = "pendentes";
+  if (!LT_AGRUPAR[ui.ltAgrupar]) ui.ltAgrupar = "grupo";
   if (!Array.isArray(ui.recolhidas)) ui.recolhidas = [];
   if (!Array.isArray(ui.recolhidasPais)) ui.recolhidasPais = [];
   if (!Array.isArray(ui.recolhidasAutor)) ui.recolhidasAutor = [];
@@ -671,6 +733,7 @@ async function enviar(){
       if ((remoto.fichas||[]).length  > (estado.fichas||[]).length)  perde.push("fichas");
       if ((remoto.paises||[]).length  > (estado.paises||[]).length)  perde.push("dossiês de país");
       if ((remoto.autores||[]).length > (estado.autores||[]).length) perde.push("autores");
+      if ((remoto.leituras||[]).length > (estado.leituras||[]).length) perde.push("leituras pendentes");
 
       let msg = nuncaViu
         ? "Este navegador nunca buscou o gist, e o gist já tem conteúdo.\n"
@@ -732,6 +795,13 @@ function renderFiltros(){
   gBusca.appendChild(inp);
   box.appendChild(gBusca);
 
+  // os eixos de classificação são das fichas; na lista de leituras só a busca vale
+  if (aba === "leituras"){
+    const cont = el("span","fcount"); cont.id="fcount";
+    box.appendChild(cont);
+    return atualizarContagem();
+  }
+
   FILTRAVEIS.forEach(chave => {
     let vals = valoresDe(chave);
     if (vals.length < 2) return;
@@ -782,6 +852,11 @@ function renderFiltros(){
 }
 function atualizarContagem(){
   const c = $("#fcount"); if (!c) return;
+  if (aba === "leituras"){
+    const n = (estado.leituras||[]).length;
+    c.textContent = n + (n === 1 ? " leitura na lista" : " leituras na lista");
+    return;
+  }
   const v = fichasVisiveis().length, t = estado.fichas.length;
   c.textContent = v === t ? t + " fichas" : v + " de " + t + " fichas";
 }
@@ -1623,6 +1698,377 @@ function novoAutor(){
   });
 }
 
+/* ==================================================== leituras pendentes */
+/* Uma lista só para o que estava espalhado pelo P6 dos dossiês e pelo texto
+   das fichas. O `id` de cada item é o id que a ficha terá: quando ela existir,
+   o item passa sozinho a «fichada». */
+
+function ltFicha(l){ return l.id ? estado.fichas.find(f => f.id === l.id) || null : null; }
+function ltEstado(l){ return ltFicha(l) ? "fichada" : (LT_STATUS[l.status] ? l.status : "a-ler"); }
+function ltRotulo(l){ return (l.autor || l.id) + (l.ano ? " (" + l.ano + ")" : ""); }
+function ltVazia(id){
+  const ano = (id.match(/(19|20)\d{2}/) || [""])[0];
+  return { id, autor:"", ano, titulo:"", onde:"", tipo:"literatura", grupo:"", prioridade:"media",
+           status:"a-ler", capitulo:"", acesso:"", indicadaPor:[], motivo:"" };
+}
+function ltPeso(p){ return { alta:0, media:1, baixa:2 }[p] ?? 1; }
+
+/* De onde a indicação veio: ficha (abre a leitura) ou dossiê (vai ao país). */
+function ltOrigemBotao(o){
+  if (o.startsWith("dossie:")){
+    const pid = o.slice(7);
+    const b = el("button","fraca","dossiê " + nomePais(pid));
+    b.addEventListener("click", () => {
+      const i = ui.recolhidasPais.indexOf(pid);
+      if (i >= 0){ ui.recolhidasPais.splice(i,1); salvarUi(); }
+      irPara("paises");
+      setTimeout(() => { const n = document.getElementById("p-"+pid); if (n) n.scrollIntoView({block:"start"}); }, 40);
+    });
+    return b;
+  }
+  const f = estado.fichas.find(x => x.id === o);
+  const b = el("button", f ? null : "fraca", f ? numFmt(f) + " " + rotulo(f) : o);
+  if (f){ b.title = campo(f,"titulo"); b.addEventListener("click", () => abrirLeitura(f.id)); }
+  else b.disabled = true;
+  return b;
+}
+
+/* O que o caderno já aponta e a lista ainda não tem: links para fichas que não
+   existem e referências que várias fichas partilham. */
+function ltSugestoes(){
+  const fichas = new Set(estado.fichas.map(f => f.id));
+  const naLista = new Set(estado.leituras.map(l => l.id));
+  const links = {}, refs = {};
+  estado.fichas.forEach(f => {
+    const texto = (f.secoes||[]).map(s => s.corpo).join("\n");
+    (texto.match(/\[\[([^\]]+)\]\]/g) || []).forEach(m => {
+      const alvo = m.slice(2,-2).trim();
+      if (fichas.has(alvo) || naLista.has(alvo)) return;
+      (links[alvo] = links[alvo] || new Set()).add(f.id);
+    });
+    lista(f,"refs").forEach(r => {
+      if (fichas.has(r) || naLista.has(r)) return;
+      (refs[r] = refs[r] || new Set()).add(f.id);
+    });
+  });
+  const ord = o => Object.entries(o).map(([k,v]) => [k,[...v]]).sort((a,b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
+  return {
+    links: ord(links),
+    refs: ord(refs).filter(([k,q]) => q.length >= LT_MIN_REFS && !links[k])
+  };
+}
+
+function ltChaveGrupo(l){
+  const k = ui.ltAgrupar;
+  if (k === "prioridade") return LT_PRIOR[l.prioridade] ? l.prioridade : "media";
+  if (k === "capitulo")   return l.capitulo || "sem capítulo";
+  if (k === "tipo")       return LT_TIPOS[l.tipo] ? l.tipo : "literatura";
+  return l.grupo || "sem tema";
+}
+function ltNomeGrupo(chave){
+  const k = ui.ltAgrupar;
+  if (k === "prioridade") return "prioridade " + (LT_PRIOR[chave] || chave);
+  if (k === "tipo")       return LT_TIPOS[chave] || chave;
+  return chave;
+}
+
+function renderLeituras(){
+  const pane = $("#pane-leituras");
+  pane.innerHTML = "";
+  pane.appendChild(el("h2","sec","Leituras pendentes"));
+  pane.appendChild(el("p","hint",
+    "O que ainda falta ler e fichar, num lugar só. Cada item guarda quem o indicou e por quê. O id é o que a ficha vai ter: quando ela entrar no caderno, o item passa sozinho para «já fichadas». A busca do topo também filtra esta lista."));
+
+  const sug = ltSugestoes();
+  if (!estado.leituras.length && !sug.links.length && !sug.refs.length){
+    const d = el("div","empty-state");
+    d.appendChild(el("h3",null,"Nenhuma leitura pendente nesta cópia local"));
+    d.appendChild(el("p",null,"A lista mora no Gist, como as fichas. Se ela já existe lá, falta buscar."));
+    const acoes = el("div","modal-actions"); acoes.style.justifyContent = "center";
+    acoes.appendChild(botaoBuscar());
+    const b = el("button","btn quiet","+ Leitura"); b.addEventListener("click", novaLt);
+    acoes.appendChild(b); d.appendChild(acoes);
+    return pane.appendChild(d);
+  }
+
+  // resumo
+  const cont = { "a-ler":0, lendo:0, fichada:0, descartada:0 };
+  const alta = estado.leituras.filter(l => ltEstado(l) === "a-ler" && l.prioridade === "alta").length;
+  estado.leituras.forEach(l => cont[ltEstado(l)]++);
+  const resumo = el("div","resumo-lt");
+  [["a ler", cont["a-ler"]], ["lendo", cont.lendo], ["já fichadas", cont.fichada], ["descartadas", cont.descartada]]
+    .forEach(([r,n]) => { const s = el("span"); s.innerHTML = "<b>"+n+"</b> "+r; resumo.appendChild(s); });
+  if (alta) { const s = el("span"); s.innerHTML = "<b>"+alta+"</b> de prioridade alta ainda por ler"; resumo.appendChild(s); }
+  pane.appendChild(resumo);
+
+  // barra
+  const barra = el("div","barra-ferramentas");
+  const mkSelect = (rot, opcoes, atual, aoMudar) => {
+    const lb = el("label","ordem"); lb.appendChild(document.createTextNode(rot));
+    const sel = el("select");
+    Object.entries(opcoes).forEach(([k,v]) => { const o = el("option",null,v); o.value = k; if (k === atual) o.selected = true; sel.appendChild(o); });
+    sel.addEventListener("change", () => aoMudar(sel.value));
+    lb.appendChild(sel); return lb;
+  };
+  barra.appendChild(mkSelect("Mostrar", LT_VER, ui.ltVer, v => { ui.ltVer = v; salvarUi(); renderConteudo(); }));
+  barra.appendChild(mkSelect("Agrupar por", LT_AGRUPAR, ui.ltAgrupar, v => { ui.ltAgrupar = v; salvarUi(); renderConteudo(); }));
+  const bNova = el("button","btn quiet","+ Leitura"); bNova.addEventListener("click", novaLt);
+  barra.appendChild(bNova);
+  pane.appendChild(barra);
+
+  // filtro
+  const termo = filtros.busca.trim().toLowerCase();
+  const vis = estado.leituras.filter(l => {
+    const st = ltEstado(l);
+    if (ui.ltVer === "pendentes"   && !(st === "a-ler" || st === "lendo")) return false;
+    if (ui.ltVer === "fichadas"    && st !== "fichada") return false;
+    if (ui.ltVer === "descartadas" && st !== "descartada") return false;
+    if (termo && !JSON.stringify(l).toLowerCase().includes(termo)) return false;
+    return true;
+  });
+
+  if (!vis.length){
+    pane.appendChild(el("p","hint", estado.leituras.length ? "Nada nesta seleção." : "A lista ainda está vazia. Comece pelas sugestões abaixo."));
+  }
+
+  // grupos, na ordem em que aparecem na lista (ou na ordem natural da chave)
+  const grupos = new Map();
+  vis.forEach(l => { const k = ltChaveGrupo(l); if (!grupos.has(k)) grupos.set(k, []); grupos.get(k).push(l); });
+  let chaves = [...grupos.keys()];
+  if (ui.ltAgrupar === "prioridade") chaves.sort((a,b) => ltPeso(a) - ltPeso(b));
+  else if (ui.ltAgrupar !== "grupo") chaves.sort((a,b) => a.localeCompare(b, "pt"));
+  chaves.forEach(k => {
+    const itens = grupos.get(k).slice().sort((a,b) =>
+      ltPeso(a.prioridade) - ltPeso(b.prioridade) || (a.autor||a.id).localeCompare(b.autor||b.id, "pt"));
+    const sec = el("section","lt-grupo");
+    const h = el("h3", null, ltNomeGrupo(k));
+    const pend = itens.filter(l => ["a-ler","lendo"].includes(ltEstado(l))).length;
+    h.appendChild(el("small", null, itens.length + (itens.length === 1 ? " item" : " itens") +
+      (pend !== itens.length ? " · " + pend + " pendentes" : "")));
+    sec.appendChild(h);
+    itens.forEach(l => sec.appendChild(editandoLt === l.id ? cardLtEdicao(l) : cardLt(l)));
+    pane.appendChild(sec);
+  });
+
+  // sugestões automáticas
+  if (sug.links.length || sug.refs.length){
+    const sc = cardDobravel("Sugestões do próprio caderno, ainda fora da lista", "lt-sug");
+    sc.card.style.marginTop = "10px";
+    const c = sc.corpo;
+    const linha = (id, quem, nota) => {
+      const d = el("div","sug-lt");
+      d.appendChild(el("code", null, id));
+      d.appendChild(el("span","quem", nota + ": " + quem.join(", ")));
+      const b = el("button","btn quiet","+ à lista");
+      b.addEventListener("click", () => {
+        const l = ltVazia(id); l.indicadaPor = quem.slice();
+        estado.leituras.push(l);
+        editandoLt = id; ltRecemCriada = id; sujo = true; salvarLocal(); renderConteudo();
+        setTimeout(() => { const n = document.getElementById("lt-"+id); if (n) n.scrollIntoView({block:"start"}); }, 30);
+      });
+      d.appendChild(b);
+      return d;
+    };
+    if (sug.links.length){
+      c.appendChild(el("h4",null,"Fichas citadas com [[link]] e que ainda não existem"));
+      sug.links.forEach(([id,quem]) => c.appendChild(linha(id, quem, "ligada por")));
+    }
+    if (sug.refs.length){
+      c.appendChild(el("h4",null,"Referências partilhadas por " + LT_MIN_REFS + " fichas ou mais, sem ficha própria"));
+      sug.refs.forEach(([id,quem]) => c.appendChild(linha(id, quem, quem.length + " fichas")));
+    }
+    pane.appendChild(sc.card);
+  }
+}
+
+function cardLt(l){
+  const st = ltEstado(l);
+  const f = ltFicha(l);
+  const prio = LT_PRIOR[l.prioridade] ? l.prioridade : "media";
+  const art = el("article", "lt p-" + prio + (st === "fichada" || st === "descartada" ? " feita" : ""));
+  art.id = "lt-" + l.id;
+
+  const ref = el("div","ref-lt");
+  ref.innerHTML = "<b>" + esc(ltRotulo(l)) + "</b>" +
+    (l.titulo ? " · <em>" + esc(l.titulo) + "</em>" : "") +
+    (l.onde ? ' <span class="onde">· ' + esc(l.onde) + "</span>" : "");
+  const meta = el("div","meta-lt");
+  meta.appendChild(el("span","pri " + prio, LT_PRIOR[prio]));
+  if (l.tipo === "documento") meta.appendChild(el("span","st-lt","documento"));
+  meta.appendChild(el("code", null, l.id));
+  if (l.capitulo) meta.appendChild(el("span", null, l.capitulo));
+  if (l.acesso)   meta.appendChild(el("span", null, "onde está: " + l.acesso));
+  ref.appendChild(meta);
+  art.appendChild(ref);
+
+  if ((l.motivo||"").trim()){
+    const m = el("div","motivo"); m.innerHTML = md(l.motivo); art.appendChild(m);
+  }
+  if (l.indicadaPor.length){
+    const box = el("div","fichas-do-pais");
+    box.appendChild(el("span","rot-rel","indicada por"));
+    l.indicadaPor.forEach(o => box.appendChild(ltOrigemBotao(o)));
+    art.appendChild(box);
+  }
+
+  const lado = el("div","lado");
+  if (f){
+    const b = el("button","btn quiet", "Abrir " + numFmt(f));
+    b.addEventListener("click", () => abrirLeitura(f.id));
+    lado.appendChild(el("span","st-lt fichada","já fichada"));
+    lado.appendChild(b);
+  } else {
+    const sel = el("select");
+    sel.setAttribute("aria-label", "Status de " + ltRotulo(l));
+    Object.entries(LT_STATUS).forEach(([k,v]) => { const o = el("option",null,v); o.value = k; if (k === st) o.selected = true; sel.appendChild(o); });
+    sel.addEventListener("change", () => { l.status = sel.value; sujo = true; salvarLocal(); renderConteudo(); });
+    lado.appendChild(sel);
+    if (l.tipo !== "documento"){
+      const bf = el("button","btn quiet","Criar ficha");
+      bf.title = "Cria a pré-ficha " + l.id + " com autor, ano e título preenchidos";
+      bf.addEventListener("click", () => criarFichaDeLt(l));
+      lado.appendChild(bf);
+    }
+  }
+  const be = el("button","btn quiet","Editar");
+  be.addEventListener("click", () => { editandoLt = l.id; renderConteudo();
+    setTimeout(() => { const n = document.getElementById("lt-"+l.id); if (n) n.scrollIntoView({block:"start"}); }, 0); });
+  lado.appendChild(be);
+  art.appendChild(lado);
+  return art;
+}
+
+function cardLtEdicao(l){
+  const art = el("article","lt-edit");
+  art.id = "lt-" + l.id;
+  const r = JSON.parse(JSON.stringify(l));
+
+  const bar = el("div","edit-bar");
+  const salvar = el("button","btn solid","Salvar");
+  const cancelar = el("button","btn quiet","Cancelar");
+  const apagar = el("button","btn danger","Apagar");
+  bar.appendChild(salvar); bar.appendChild(cancelar); bar.appendChild(apagar);
+  bar.appendChild(el("span","note", "o id é o da ficha futura"));
+  art.appendChild(bar);
+
+  const grid = el("div","autor-edit");
+  const texto = (k, rot, ph, largo) => {
+    const fd = el("div","field" + (largo ? " largo" : ""));
+    fd.appendChild(el("label",null,rot));
+    const inp = el("input"); inp.value = r[k] || ""; if (ph) inp.placeholder = ph;
+    inp.addEventListener("input", e => { r[k] = e.target.value; });
+    fd.appendChild(inp); grid.appendChild(fd); return inp;
+  };
+  const escolha = (k, rot, opcoes) => {
+    const fd = el("div","field");
+    fd.appendChild(el("label",null,rot));
+    const sel = el("select");
+    Object.entries(opcoes).forEach(([kk,v]) => { const o = el("option",null,v); o.value = kk; if (kk === r[k]) o.selected = true; sel.appendChild(o); });
+    sel.addEventListener("change", () => { r[k] = sel.value; });
+    fd.appendChild(sel); grid.appendChild(fd);
+  };
+  texto("autor","autor(es)","ex.: Sobrenome, Nome");
+  texto("ano","ano");
+  texto("titulo","título",null,true);
+  texto("onde","publicado em","revista, livro, editora…",true);
+  texto("id","id da ficha futura","ex.: sobrenome2020");
+  const gInp = texto("grupo","tema (agrupa a lista)","ex.: Teoria");
+  const dl = el("datalist"); dl.id = "dl-grupos-lt";
+  [...new Set(estado.leituras.map(x => x.grupo).filter(Boolean))].forEach(g => { const o = el("option"); o.value = g; dl.appendChild(o); });
+  gInp.setAttribute("list", dl.id); grid.appendChild(dl);
+  escolha("prioridade","prioridade",LT_PRIOR);
+  escolha("status","status",LT_STATUS);
+  escolha("tipo","tipo",LT_TIPOS);
+  texto("capitulo","capítulo da tese","ex.: cap1");
+  texto("acesso","onde está o arquivo","ex.: Zotero, Drive, não tenho",true);
+
+  const fdO = el("div","field largo");
+  fdO.appendChild(el("label",null,"indicada por — fichas e dossiês"));
+  const itens = estado.fichas.map(f => ({ id:f.id, rotulo: numFmt(f) + " " + rotulo(f), detalhe: f.id }))
+    .concat((estado.paises||[]).map(p => ({ id:"dossie:" + p.id, rotulo:"Dossiê " + (p.nome || p.id), detalhe:"dossie:" + p.id })));
+  // origens que não existem mais continuam marcadas, para não sumirem num salvar
+  r.indicadaPor.filter(o => !itens.some(i => i.id === o)).forEach(o => itens.push({ id:o, rotulo:o, detalhe:"não encontrada" }));
+  const pk = criarPicker(itens, r.indicadaPor, "nada a marcar");
+  fdO.appendChild(pk.elemento); grid.appendChild(fdO);
+
+  const fdM = el("div","field largo");
+  fdM.appendChild(el("label",null,"por que ler — aceita **negrito**, *itálico*, [[links]] e listas"));
+  const ta = el("textarea"); ta.value = r.motivo || "";
+  ta.addEventListener("input", e => { r.motivo = e.target.value; });
+  fdM.appendChild(ta); grid.appendChild(fdM);
+  art.appendChild(grid);
+
+  salvar.addEventListener("click", () => {
+    r.id = paraSlug(r.id) || l.id;
+    if (r.id !== l.id && estado.leituras.some(x => x.id === r.id))
+      return aviso("Já existe uma leitura com o id " + r.id + ".", "err");
+    r.indicadaPor = pk.marcados();
+    const i = estado.leituras.findIndex(x => x.id === l.id);
+    if (i >= 0) estado.leituras[i] = r;
+    editandoLt = null; ltRecemCriada = null; sujo = true; salvarLocal(); renderConteudo();
+  });
+  cancelar.addEventListener("click", () => {
+    if (ltRecemCriada === l.id){
+      estado.leituras = estado.leituras.filter(x => x.id !== l.id);
+      salvarLocal();
+    }
+    editandoLt = null; ltRecemCriada = null; renderConteudo();
+  });
+  apagar.addEventListener("click", () => {
+    if (!confirm("Tirar " + ltRotulo(l) + " da lista de leituras? A ficha, se existir, não é afetada.")) return;
+    estado.leituras = estado.leituras.filter(x => x.id !== l.id);
+    editandoLt = null; ltRecemCriada = null; sujo = true; salvarLocal(); renderConteudo();
+  });
+  return art;
+}
+
+function novaLt(){
+  abrirModal(b => {
+    b.appendChild(el("h3",null,"Leitura pendente"));
+    b.appendChild(el("p",null,"O id é o que a ficha vai ter quando você a criar, no formato autorAAAA. Os outros campos se completam depois, em Editar."));
+    const f1 = el("div","field"); f1.appendChild(el("label",null,"autor(es)"));
+    const i1 = el("input"); i1.placeholder = "ex.: Sobrenome, Nome"; f1.appendChild(i1); b.appendChild(f1);
+    const f2 = el("div","field"); f2.appendChild(el("label",null,"ano"));
+    const i2 = el("input"); f2.appendChild(i2); b.appendChild(f2);
+    const f3 = el("div","field"); f3.appendChild(el("label",null,"id da ficha futura"));
+    const i3 = el("input"); i3.placeholder = "ex.: sobrenome2020"; f3.appendChild(i3); b.appendChild(f3);
+    const sugerir = () => {
+      if (i3.dataset.tocado) return;
+      const sobrenome = paraSlug((i1.value.split(",")[0] || "").trim());
+      i3.value = sobrenome ? sobrenome + i2.value.trim() : "";
+    };
+    i1.addEventListener("input", sugerir); i2.addEventListener("input", sugerir);
+    i3.addEventListener("input", () => { i3.dataset.tocado = "1"; });
+    const a = el("div","modal-actions");
+    const ok = el("button","btn solid","Criar");
+    ok.addEventListener("click", () => {
+      const id = paraSlug(i3.value);
+      if (!id) return aviso("O id é obrigatório.", "err");
+      if (estado.leituras.some(x => x.id === id)) return aviso("Essa leitura já está na lista.", "err");
+      const l = ltVazia(id); l.autor = i1.value.trim(); l.ano = i2.value.trim() || l.ano;
+      estado.leituras.push(l);
+      editandoLt = id; ltRecemCriada = id; sujo = true; salvarLocal(); fecharModal(); irPara("leituras");
+      setTimeout(() => { const n = document.getElementById("lt-"+id); if (n) n.scrollIntoView({block:"start"}); }, 30);
+    });
+    const fe = el("button","btn quiet","Cancelar"); fe.addEventListener("click", fecharModal);
+    a.appendChild(ok); a.appendChild(el("span","spacer")); a.appendChild(fe);
+    b.appendChild(a);
+  });
+}
+
+/* Da lista para a ficha: o esqueleto já nasce com autor, ano, título e a
+   referência que houver; a leitura vira «lendo» até a ficha existir. */
+function criarFichaDeLt(l){
+  if (ltFicha(l)) return abrirLeitura(l.id);
+  if (!confirm("Criar a pré-ficha " + l.id + " (" + ltRotulo(l) + ")?")) return;
+  const a1 = [l.autor, l.titulo, l.onde, l.ano].filter(Boolean).join(". ");
+  estado.fichas.push(esqueletoFicha(l.id, l.autor, l.ano, l.titulo, a1 ? a1 + "." : ""));
+  l.status = "lendo";
+  editando = l.id; sujo = true; salvarLocal();
+  irPara("fichas"); render();
+  setTimeout(() => { const n = document.getElementById("f-"+l.id); if (n) n.scrollIntoView({block:"start"}); }, 40);
+}
+
 /* ==================================================== leitura em tela cheia */
 /* Pensada para ficar ao lado do PDF do artigo: uma ficha por vez, sem barra,
    sem filtro, sem matriz. Setas trocam de ficha dentro do que os filtros
@@ -2373,12 +2819,13 @@ function aplicarImport(dados){
   if (Array.isArray(dados.fichas)){
     if (estado.fichas.length && !confirm("Isso substitui as " + estado.fichas.length + " fichas locais. Continuar?")) return;
     // preserva dossiês e autores se o arquivo importado não os trouxer
-    const paisesAntigos = estado.paises, autoresAntigos = estado.autores;
+    const paisesAntigos = estado.paises, autoresAntigos = estado.autores, leiturasAntigas = estado.leituras;
     estado = { schema:1, savedAt:dados.savedAt||null, fichas:dados.fichas,
                titulo: dados.titulo || estado.titulo,
                vocab: dados.vocab || estado.vocab,
                paises: Array.isArray(dados.paises) && dados.paises.length ? dados.paises : paisesAntigos,
-               autores: Array.isArray(dados.autores) && dados.autores.length ? dados.autores : autoresAntigos };
+               autores: Array.isArray(dados.autores) && dados.autores.length ? dados.autores : autoresAntigos,
+               leituras: Array.isArray(dados.leituras) && dados.leituras.length ? dados.leituras : leiturasAntigas };
     normalizar();
     sujo = true; salvarLocal(); render();
     return aviso("Importadas " + estado.fichas.length + " fichas. Clique em Enviar para gravar no gist.", "ok");
@@ -2410,6 +2857,18 @@ function baixarBackup(){
   URL.revokeObjectURL(a.href);
 }
 
+function esqueletoFicha(id, autor, ano, titulo, a1){
+  return {
+    id,
+    meta:{ id, n:proximoNumero(), autor:autor||"", ano:ano||"", titulo:titulo||"",
+           status:"pre-ficha", regiao:[], refs:[], tags:[], filiacao:[] },
+    secoes: SECOES_PADRAO.map(([codigo,tit]) => ({
+      codigo, titulo:tit,
+      corpo: codigo === "A1" ? (a1||"") : "> A preencher após a leitura."
+    }))
+  };
+}
+
 function novaFicha(){
   abrirModal(b => {
     b.appendChild(el("h3",null,"Ficha nova"));
@@ -2430,16 +2889,7 @@ function novaFicha(){
       const id = i1.value.trim();
       if (!id) return aviso("O id é obrigatório — sem ele os [[links]] não funcionam.", "err");
       if (estado.fichas.some(x => x.id === id)) return aviso("Já existe uma ficha com esse id.", "err");
-      const ficha = {
-        id,
-        meta:{ id, n:proximoNumero(), autor:i2.value.trim(), ano:i3.value.trim(), titulo:i4.value.trim(),
-               status:"pre-ficha", regiao:[], refs:[], tags:[], filiacao:[] },
-        secoes: SECOES_PADRAO.map(([codigo,titulo]) => ({
-          codigo, titulo,
-          corpo: codigo === "A1" ? "" : "> A preencher após a leitura."
-        }))
-      };
-      estado.fichas.push(ficha);
+      estado.fichas.push(esqueletoFicha(id, i2.value.trim(), i3.value.trim(), i4.value.trim()));
       sujo = true; editando = id; salvarLocal(); fecharModal(); irPara("fichas"); render();
     });
     const fe = el("button","btn quiet","Cancelar"); fe.addEventListener("click", fecharModal);
@@ -2450,14 +2900,17 @@ function novaFicha(){
 
 /* =============================================================== render */
 
-const ABAS = ["matriz","fichas","paises","autores","analise"];
+const ABAS = ["matriz","fichas","paises","autores","leituras","analise"];
 
 function irPara(nome){
+  const antes = aba;
   aba = nome;
   ABAS.forEach(n => {
     $("#tab-"+n).setAttribute("aria-selected", n===nome ? "true" : "false");
     $("#pane-"+n).hidden = (n !== nome);
   });
+  // a barra de filtros muda de forma só quando se entra ou se sai das leituras
+  if ((antes === "leituras") !== (nome === "leituras")) renderFiltros();
   renderConteudo();
 }
 function renderConteudo(){
@@ -2465,6 +2918,7 @@ function renderConteudo(){
   else if (aba === "fichas") renderFichas();
   else if (aba === "paises") renderPaises();
   else if (aba === "autores") renderAutores();
+  else if (aba === "leituras") renderLeituras();
   else renderAnalise();
 }
 function render(){
