@@ -185,6 +185,11 @@ button.toggle:hover{background:var(--surface-2);color:var(--accent);border-color
 .ficha.recolhida .resumo{display:block}
 .barra-ferramentas{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:18px}
 .barra-ferramentas .nota{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);margin-left:auto}
+.barra-ferramentas .ordem{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:var(--ink-soft);display:flex;gap:6px;align-items:center}
+.barra-ferramentas select{font-family:var(--mono);font-size:11px;color:var(--ink);background:var(--surface);
+  border:1px solid var(--rule-hard);border-radius:2px;padding:4px 6px}
+.nficha{color:var(--ink);font-weight:700;letter-spacing:.06em;margin-right:8px}
+table.matrix .nficha{display:block;margin:0 0 2px}
 .card.recolhida .card-corpo{display:none}
 .card>h3{display:flex;align-items:center;gap:10px}
 .card>h3 .toggle{margin-left:auto}
@@ -206,6 +211,7 @@ button.toggle:hover{background:var(--surface-2);color:var(--accent);border-color
 .ix:hover{background:var(--accent-bg)}
 .ix.oculta{opacity:.42}
 .ix .ano{font-family:var(--mono);font-size:11px;color:var(--ink-faint);flex-shrink:0;width:34px}
+.ix .num{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft);flex-shrink:0;width:28px}
 .ix .nome{flex:1;font-size:14.5px;line-height:1.35;min-width:0}
 .ix .nome small{display:block;font-family:var(--mono);font-size:10px;color:var(--ink-faint);margin-top:2px}
 .ix .st{font-family:var(--mono);font-size:9px;letter-spacing:.07em;text-transform:uppercase;padding:2px 5px;
@@ -482,6 +488,31 @@ function rotulo(f){
   const primeiro = a.split(",")[0].trim();
   return primeiro + " " + campo(f,"ano");
 }
+/* Número de entrada: dado uma vez, quando a ficha entra no caderno, e nunca
+   recalculado. Renomear o id ou mudar a ordem de exibição não mexe nele, então
+   «Nº 07» continua apontando para a mesma ficha em qualquer conversa. */
+function numero(f){
+  const n = Number(f && f.meta && f.meta.n);
+  return Number.isInteger(n) && n > 0 ? n : null;
+}
+function numFmt(f){
+  const n = numero(f);
+  return "Nº " + (n ? String(n).padStart(2,"0") : "—");
+}
+function proximoNumero(){
+  return estado.fichas.reduce((m,f) => Math.max(m, numero(f) || 0), 0) + 1;
+}
+const ORDENS = { n:"nº de entrada", autor:"autor (A–Z)", ano:"ano", id:"id" };
+function ordenadas(fs){
+  const porN = (a,b) => (numero(a) || 1e9) - (numero(b) || 1e9);
+  const cmp = {
+    n:     porN,
+    autor: (a,b) => rotulo(a).localeCompare(rotulo(b), "pt", {sensitivity:"base"}) || porN(a,b),
+    ano:   (a,b) => (campo(a,"ano")||"").localeCompare(campo(b,"ano")||"") || porN(a,b),
+    id:    (a,b) => a.id.localeCompare(b.id, "pt")
+  }[ORDENS[ui.ordem] ? ui.ordem : "n"];
+  return fs.slice().sort(cmp);
+}
 function pendentes(f){
   return (f.secoes||[]).filter(s => /^\s*>\s*A preencher/i.test(s.corpo||"")).map(s=>s.codigo);
 }
@@ -551,6 +582,13 @@ function normalizar(){
   if (!Array.isArray(ui.recolhidas)) ui.recolhidas = [];
   if (!Array.isArray(ui.recolhidasPais)) ui.recolhidasPais = [];
   if (!Array.isArray(ui.recolhidasAutor)) ui.recolhidasAutor = [];
+  if (!ORDENS[ui.ordem]) ui.ordem = "n";
+  // fichas sem número (cadernos antigos, importação em lote) recebem o próximo,
+  // na ordem em que estão no arquivo; Enviar grava o número no gist
+  let prox = proximoNumero();
+  estado.fichas.forEach(f => {
+    if (!numero(f)){ f.meta = f.meta || {}; f.meta.n = prox++; }
+  });
 }
 function salvarCfg(){ localStorage.setItem(K_SYNC, JSON.stringify(cfg)); }
 function salvarUi(){ localStorage.setItem(K_UI, JSON.stringify(ui)); }
@@ -753,7 +791,7 @@ function atualizarContagem(){
 function renderMatriz(){
   const pane = $("#pane-matriz");
   pane.innerHTML = "";
-  const fs = fichasVisiveis();
+  const fs = ordenadas(fichasVisiveis());
   if (!fs.length) return pane.appendChild(vazio());
 
   pane.appendChild(Object.assign(el("h2","sec","Matriz comparativa"),{}));
@@ -766,7 +804,9 @@ function renderMatriz(){
   trh.appendChild(Object.assign(el("th","axis","Eixo"),{}));
   fs.forEach(f => {
     const th = el("th");
-    const who = el("span","who", rotulo(f) + (campo(f,"status")==="pre-ficha" ? " · pré-ficha" : ""));
+    const who = el("span","who");
+    who.appendChild(el("span","nficha", numFmt(f)));
+    who.appendChild(document.createTextNode(rotulo(f) + (campo(f,"status")==="pre-ficha" ? " · pré-ficha" : "")));
     th.appendChild(who);
     th.appendChild(document.createTextNode(campo(f,"titulo") || f.id));
     trh.appendChild(th);
@@ -811,7 +851,7 @@ function vazio(){
 function renderFichas(){
   const pane = $("#pane-fichas");
   pane.innerHTML = "";
-  const fs = fichasVisiveis();
+  const fs = ordenadas(fichasVisiveis());
   if (!fs.length) return pane.appendChild(vazio());
 
   const barra = el("div","barra-ferramentas");
@@ -828,6 +868,17 @@ function renderFichas(){
   const bIdx = el("button","btn quiet","Índice");
   bIdx.addEventListener("click", abrirIndice);
   barra.appendChild(bRec); barra.appendChild(bExp); barra.appendChild(bIdx);
+  // a ordem é preferência de tela: vale também para a matriz e o índice
+  const lbO = el("label","ordem","Ordenar por");
+  const selO = el("select");
+  Object.entries(ORDENS).forEach(([k,r]) => {
+    const o = el("option", null, r); o.value = k;
+    if (ui.ordem === k) o.selected = true;
+    selO.appendChild(o);
+  });
+  selO.addEventListener("change", e => { ui.ordem = e.target.value; salvarUi(); renderConteudo(); });
+  lbO.appendChild(selO);
+  barra.appendChild(lbO);
   const nRec = fs.filter(f => estaRecolhida(f.id)).length;
   barra.appendChild(el("span","nota", nRec ? nRec + " de " + fs.length + " recolhidas" : fs.length + " expandidas"));
   pane.appendChild(barra);
@@ -841,8 +892,7 @@ function abrirIndice(){
   const dr = $("#indice");
   dr.innerHTML = "";
   const visiveis = new Set(fichasVisiveis().map(f => f.id));
-  const todas = estado.fichas.slice().sort((a,b) =>
-    (campo(a,"ano")||"").localeCompare(campo(b,"ano")||"") || (campo(a,"autor")||"").localeCompare(campo(b,"autor")||""));
+  const todas = ordenadas(estado.fichas);
 
   const hd = el("header");
   const hh = el("div"); hh.style.flex = "1";
@@ -887,6 +937,7 @@ function abrirIndice(){
     corpo.appendChild(bloco);
     doGrupo.forEach(f => {
       const b = el("button", visiveis.has(f.id) ? "ix" : "ix oculta");
+      b.appendChild(el("span","num", numero(f) ? String(numero(f)).padStart(2,"0") : "—"));
       b.appendChild(el("span","ano", campo(f,"ano") || "—"));
       const nome = el("span","nome", rotulo(f));
       // as demais regiões da ficha ficam anotadas, para não sumirem do índice
@@ -940,7 +991,10 @@ function cardLeitura(f){
 
   const hd = el("header");
   const h = el("div","h");
-  h.appendChild(el("span","eyebrow", f.id + " · " + (campo(f,"status")||"sem status")));
+  const eb = el("span","eyebrow");
+  eb.appendChild(el("span","nficha", numFmt(f)));
+  eb.appendChild(document.createTextNode(f.id + " · " + (campo(f,"status")||"sem status")));
+  h.appendChild(eb);
   h.appendChild(el("h3", null, campo(f,"titulo") || f.id));
   const ref = el("div","ref"); ref.innerHTML = md(secao(f,"A1")); h.appendChild(ref);
 
@@ -1674,7 +1728,7 @@ function renderLeitura(){
   /* --- corpo --- */
   const corpo = el("div","leitura-corpo");
   const cab = el("div","cabeca");
-  cab.appendChild(el("span","eyebrow", rotulo(f)));
+  cab.appendChild(el("span","eyebrow", numFmt(f) + " · " + rotulo(f)));
   cab.appendChild(el("h2", null, campo(f,"titulo") || f.id));
   const ref = el("div","ref"); ref.innerHTML = md(secao(f,"A1")); cab.appendChild(ref);
 
@@ -2333,10 +2387,14 @@ function aplicarImport(dados){
   if (!ficha || !ficha.id) throw new Error("Não reconheci o formato. Esperava um objeto com fichas[] ou uma ficha com id.");
   if (!Array.isArray(ficha.secoes)) ficha.secoes = [];
   const i = estado.fichas.findIndex(x => x.id === ficha.id);
+  ficha.meta = ficha.meta || {};
   if (i >= 0){
     if (!confirm("Já existe uma ficha " + ficha.id + ". Substituir?")) return;
+    // substituir não é entrar de novo: o número continua o da ficha antiga
+    if (numero(estado.fichas[i])) ficha.meta.n = numero(estado.fichas[i]);
     estado.fichas[i] = ficha;
   } else {
+    if (!numero(ficha)) ficha.meta.n = proximoNumero();
     estado.fichas.push(ficha);
   }
   sujo = true; salvarLocal(); render();
@@ -2374,7 +2432,7 @@ function novaFicha(){
       if (estado.fichas.some(x => x.id === id)) return aviso("Já existe uma ficha com esse id.", "err");
       const ficha = {
         id,
-        meta:{ id, autor:i2.value.trim(), ano:i3.value.trim(), titulo:i4.value.trim(),
+        meta:{ id, n:proximoNumero(), autor:i2.value.trim(), ano:i3.value.trim(), titulo:i4.value.trim(),
                status:"pre-ficha", regiao:[], refs:[], tags:[], filiacao:[] },
         secoes: SECOES_PADRAO.map(([codigo,titulo]) => ({
           codigo, titulo,
